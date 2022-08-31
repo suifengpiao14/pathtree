@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TreeSQL(table string) (sql string) {
+func TableSQL(table string) (sql string) {
 	sql = fmt.Sprintf(`
 	create table  if not exists %s(
         node_id varchar(64) not null default "" comment "外部节点标识",

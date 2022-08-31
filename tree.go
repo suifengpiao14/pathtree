@@ -22,7 +22,7 @@ func NewTree(table string) Tree {
 	}
 }
 func (t *tree) TableSQL() (sql string) {
-	return TreeSQL(t.table)
+	return TableSQL(t.table)
 }
 func (t *tree) AddNode(simpleNode *SimpleNodeModel) (sql string) {
 	return AddNode(t.table, simpleNode)
