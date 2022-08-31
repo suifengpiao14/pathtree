@@ -1,7 +1,7 @@
 package tree
 
 type Tree interface {
-	TreeSQL() (sql string)
+	TableSQL() (sql string)
 	AddNode(simpleNode *SimpleNodeModel) (sql string)
 	BatchAddNode(nodeList []*NodeModel) (sql string)
 	GetNode(nodeId string) (sql string)
@@ -21,7 +21,7 @@ func NewTree(table string) Tree {
 		table: table,
 	}
 }
-func (t *tree) TreeSQL() (sql string) {
+func (t *tree) TableSQL() (sql string) {
 	return TreeSQL(t.table)
 }
 func (t *tree) AddNode(simpleNode *SimpleNodeModel) (sql string) {

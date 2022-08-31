@@ -15,6 +15,6 @@ func GetTree() Tree {
 }
 
 func TestTreeTreeSQL(t *testing.T) {
-	sql := GetTree().TreeSQL()
+	sql := GetTree().TableSQL()
 	fmt.Println(sql)
 }
