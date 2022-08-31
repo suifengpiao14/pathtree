@@ -45,6 +45,14 @@ type NodeModel struct {
 	DeletedAt string `json:"deletedAt"`
 }
 
+type SimpleNodeModel struct {
+	Title  string `json:"title"`
+	IsLeaf int    `json:"isLeaf"`
+	Order  int    `json:"order"`
+	Path   string `json:"path"`
+	Ext    string `json:"ext"`
+}
+
 var zeroTime = "0000-00-00 00:00:00"
 
 func CurrentTime() (datetime string) {
@@ -52,8 +60,9 @@ func CurrentTime() (datetime string) {
 	return datetime
 }
 
-func AddNode(node NodeModel) (sql string) {
-	sql = fmt.Sprintf("insert into `tree_relation`  (`node_id`,`title`,`parent_id`,`is_leaf`,`order`,`depth`,`path`,`ext`) values('%s','%s','%s',%d,%d,%d,'%s','%s')", node.NodeID, node.Title, node.ParentID, node.IsLeaf, node.Order, node.Depth, node.Path, node.Ext)
+func AddNode(simpleNode SimpleNodeModel) (sql string) {
+	nodeId, parentId, _, depth := ParsePath(simpleNode.Path)
+	sql = fmt.Sprintf("insert into `tree_relation`  (`node_id`,`title`,`parent_id`,`is_leaf`,`order`,`depth`,`path`,`ext`) values('%s','%s','%s',%d,%d,%d,'%s','%s')", nodeId, simpleNode.Title, parentId, simpleNode.IsLeaf, simpleNode.Order, depth, simpleNode.Path, simpleNode.Ext)
 	return sql
 }
 
@@ -101,18 +110,8 @@ func GetSubTreeNodeCount(nodeId string) (sql string) {
 }
 
 func MoveSubTree(newPath string, oldPath string) (sql string) {
-	lastIndex := strings.LastIndex(newPath, "/")
-	if lastIndex < 0 {
-		err := errors.Errorf("newPath required contains char '/',got:%s", newPath)
-		panic(err)
-	}
-	nodeId := newPath[lastIndex+1:]
-	newParentPath := newPath[:lastIndex]
-	newParentId := ""
-	if lastIndex := strings.LastIndex(newParentPath, "/"); lastIndex > -1 {
-		newParentId = newParentPath[lastIndex+1:]
-	}
-	diffDepth := strings.Count(newPath, "/") - strings.Count(oldPath, "/") //计算深度变化量
+	nodeId, newParentId, _, depth := ParsePath(newPath)
+	diffDepth := depth - strings.Count(oldPath, "/") //计算深度变化量
 	var w bytes.Buffer
 	w.WriteString("start transaction;")
 	w.WriteString(fmt.Sprintf("update `tree_relation` set `parent_id`='%s',`path`='%s',`depth`= `depth` + %d where `node_id`='%s';", newParentId, newPath, diffDepth, nodeId))
@@ -125,4 +124,19 @@ func MoveSubTree(newPath string, oldPath string) (sql string) {
 func DeleteSubTree(nodePathPrefix string) (sql string) {
 	sql = fmt.Sprintf("update `tree_relation` set `deleted_at`='%s' where `path` like '%s%%';", CurrentTime(), nodePathPrefix)
 	return sql
+}
+
+func ParsePath(path string) (nodeId string, parentId string, parentPath string, depth int) {
+	lastIndex := strings.LastIndex(path, "/")
+	if lastIndex < 0 {
+		err := errors.Errorf("path required contains char '/',got:%s", path)
+		panic(err)
+	}
+	parentPath = path[:lastIndex]
+	parentId = ""
+	if lastIndex := strings.LastIndex(parentPath, "/"); lastIndex > -1 {
+		parentId = parentPath[lastIndex+1:]
+	}
+	depth = strings.Count(path, "/")
+	return nodeId, parentId, parentPath, depth
 }
