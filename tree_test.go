@@ -6,7 +6,7 @@ import (
 )
 
 func TestTreeSQL(t *testing.T) {
-	out := TreeSQL()
+	out := TreeSQL("tree_relation")
 	fmt.Println(out)
 
 }
