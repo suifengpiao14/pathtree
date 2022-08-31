@@ -8,5 +8,13 @@ import (
 func TestTreeSQL(t *testing.T) {
 	out := TreeSQL("tree_relation")
 	fmt.Println(out)
+}
 
+func GetTree() Tree {
+	return NewTree("attribute_tree")
+}
+
+func TestTreeTreeSQL(t *testing.T) {
+	sql := GetTree().TreeSQL()
+	fmt.Println(sql)
 }
