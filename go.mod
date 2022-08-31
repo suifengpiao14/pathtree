@@ -1,4 +1,4 @@
-module github.com/suifengpiao14/treemodel
+module gitea.programmerfamily.com/go/treemodel
 
 go 1.17
 

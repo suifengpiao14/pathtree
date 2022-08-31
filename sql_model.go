@@ -9,10 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TableString(table string) (sqlTable string) {
-	return fmt.Sprintf("`%s`", table)
-}
-
 func TreeSQL(table string) (sql string) {
 	sql = fmt.Sprintf(`
 	create table  if not exists %s(
@@ -30,7 +26,7 @@ func TreeSQL(table string) (sql string) {
         primary key (node_id),
         key idx_path(%s(768))
     )ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 comment "树关系模型";
-	`, TableString(table), "`order`", "`path`")
+	`, fmt.Sprintf("`%s`", table), "`order`", "`path`")
 	return sql
 }
 
