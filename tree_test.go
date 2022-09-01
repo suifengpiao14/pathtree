@@ -11,7 +11,7 @@ func TestTreeSQL(t *testing.T) {
 }
 
 func GetTree() Tree {
-	return NewTree("attribute_tree")
+	return NewTree("attribute_tree", nil)
 }
 
 func TestTreeTreeSQL(t *testing.T) {
