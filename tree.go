@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
-	provider "github.com/suifengpiao14/templatemap/provider"
+	"github.com/suifengpiao14/model"
+	"github.com/suifengpiao14/templatemap/provider"
 )
 
 type Tree interface {
@@ -20,17 +21,16 @@ type Tree interface {
 }
 
 type tree struct {
-	identity string
-	Table    string
-	Provider provider.ExecproviderInterface
+	model.Model
 }
 
 //NewTree 生成一个tree实例
 func NewTree(table string, provider provider.ExecproviderInterface) Tree {
 	return &tree{
-
-		Table:    table,
-		Provider: provider,
+		Model: model.Model{
+			Table:    table,
+			Provider: provider,
+		},
 	}
 }
 
@@ -43,19 +43,19 @@ func (t *tree) TableSQL() (sql string) {
 }
 func (t *tree) AddNode(simpleNode *SimpleNodeModel) (err error) {
 	sql := AddNode(t.Table, simpleNode)
-	_, err = t.GetProvider().Exec(t.identity, sql)
+	_, err = t.GetProvider().Exec(t.Identity, sql.SQL)
 	return err
 }
 
 func (t *tree) BatchAddNode(nodeList []*NodeModel) (err error) {
 	sql := BatchAddNode(t.Table, nodeList)
-	_, err = t.GetProvider().Exec(t.identity, sql)
+	_, err = t.GetProvider().Exec(t.Identity, sql.SQL)
 	return err
 }
 
 func (t *tree) GetNode(nodeId string) (node *NodeModel, err error) {
 	sql := GetNode(t.Table, nodeId)
-	data, err := t.GetProvider().Exec(t.identity, sql)
+	data, err := t.GetProvider().Exec(t.Identity, sql.SQL)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (t *tree) GetNode(nodeId string) (node *NodeModel, err error) {
 
 func (t *tree) GetSubTreeLimitDepth(parentPath string, depth int) (nodeList []*NodeModel, err error) {
 	sql := GetSubTreeLimitDepth(t.Table, parentPath, depth)
-	data, err := t.GetProvider().Exec(t.identity, sql)
+	data, err := t.GetProvider().Exec(t.Identity, sql.SQL)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (t *tree) GetSubTreeLimitDepth(parentPath string, depth int) (nodeList []*N
 
 func (t *tree) GetSubTreeNodeCount(nodeId string) (count int, err error) {
 	sql := GetSubTreeNodeCount(t.Table, nodeId)
-	data, err := t.GetProvider().Exec(t.identity, sql)
+	data, err := t.GetProvider().Exec(t.Identity, sql.SQL)
 	if err != nil {
 		return 0, err
 	}
@@ -96,7 +96,7 @@ func (t *tree) GetSubTreeNodeCount(nodeId string) (count int, err error) {
 
 func (t *tree) MoveSubTree(newPath string, oldPath string) (err error) {
 	sql := MoveSubTree(t.Table, newPath, oldPath)
-	_, err = t.GetProvider().Exec(t.identity, sql)
+	_, err = t.GetProvider().Exec(t.Identity, sql.SQL)
 	if err != nil {
 		return err
 	}
@@ -104,6 +104,6 @@ func (t *tree) MoveSubTree(newPath string, oldPath string) (err error) {
 }
 func (t *tree) DeleteSubTree(nodePathPrefix string) (err error) {
 	sql := DeleteSubTree(t.Table, nodePathPrefix)
-	_, err = t.GetProvider().Exec(t.identity, sql)
+	_, err = t.GetProvider().Exec(t.Identity, sql.SQL)
 	return err
 }

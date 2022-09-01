@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/suifengpiao14/model"
 )
 
 func TableSQL(table string) (sql string) {
@@ -60,13 +61,16 @@ func CurrentTime() (datetime string) {
 	return datetime
 }
 
-func AddNode(table string, simpleNode *SimpleNodeModel) (sql string) {
+func AddNode(table string, simpleNode *SimpleNodeModel) (sql model.SQL) {
 	nodeId, parentId, _, depth := ParsePath(simpleNode.Path)
-	sql = fmt.Sprintf("insert into `%s`  (`node_id`,`title`,`parent_id`,`is_leaf`,`order`,`depth`,`path`,`ext`) values('%s','%s','%s',%d,%d,%d,'%s','%s')", table, nodeId, simpleNode.Title, parentId, simpleNode.IsLeaf, simpleNode.Order, depth, simpleNode.Path, simpleNode.Ext)
+	sql = model.SQL{
+		Name: "tree_addNode",
+		SQL:  fmt.Sprintf("insert into `%s`  (`node_id`,`title`,`parent_id`,`is_leaf`,`order`,`depth`,`path`,`ext`) values('%s','%s','%s',%d,%d,%d,'%s','%s')", table, nodeId, simpleNode.Title, parentId, simpleNode.IsLeaf, simpleNode.Order, depth, simpleNode.Path, simpleNode.Ext),
+	}
 	return sql
 }
 
-func BatchAddNode(table string, nodeList []*NodeModel) (sql string) {
+func BatchAddNode(table string, nodeList []*NodeModel) (sql model.SQL) {
 	var w bytes.Buffer
 	w.WriteString(fmt.Sprintf("insert into `%s`  (`node_id`,`title`,`parent_id`,`is_leaf`,`order`,`depth`,`path`,`ext`) values ", table))
 	for i, node := range nodeList {
@@ -76,35 +80,47 @@ func BatchAddNode(table string, nodeList []*NodeModel) (sql string) {
 		w.WriteString(fmt.Sprintf("('%s','%s','%s',%d,%d,%d,'%s','%s')", node.NodeID, node.Title, node.ParentID, node.IsLeaf, node.Order, node.Depth, node.Path, node.Ext))
 	}
 	w.WriteString(";")
-
-	return w.String()
-}
-
-func GetNode(table string, nodeId string) (sql string) {
-	sql = fmt.Sprintf("select * from `%s` where `node_id`='%s' and `deleted_at` ='%s'", table, nodeId, zeroTime)
+	sql = model.SQL{
+		Name: "tree_batchAddNode",
+		SQL:  w.String(),
+	}
 	return sql
 }
 
-func GetSubTreeLimitDepth(table string, parentPath string, depth int) (sql string) {
+func GetNode(table string, nodeId string) (sql model.SQL) {
+	sql = model.SQL{
+		Name: "tree_getNode",
+		SQL:  fmt.Sprintf("select * from `%s` where `node_id`='%s' and `deleted_at` ='%s'", table, nodeId, zeroTime),
+	}
+	return sql
+}
+
+func GetSubTreeLimitDepth(table string, parentPath string, depth int) (sql model.SQL) {
 	var w bytes.Buffer
 	w.WriteString(fmt.Sprintf("select * from `%s` where `path` like '%s%%' and `deleted_at` ='%s'", table, parentPath, zeroTime))
 	if depth > 0 {
 		w.WriteString(fmt.Sprintf(" and `depth`=%d", depth))
 	}
 	w.WriteString("order by `depth` asc,`order` asc;")
-	sql = w.String()
+	sql = model.SQL{
+		Name: "tree_getSubTreeLimitDepth",
+		SQL:  w.String(),
+	}
 	return sql
 }
 
-func GetSubTreeNodeCount(table string, nodeId string) (sql string) {
+func GetSubTreeNodeCount(table string, nodeId string) (sql model.SQL) {
 	var w bytes.Buffer
 	w.WriteString(fmt.Sprintf("set @path=(select path from `%s` where `node_id`='%s';)", table, nodeId))
 	w.WriteString(fmt.Sprintf("select count(*) from `%s` where `path` like concat(@path,'%%') and `deleted_at` ='%s';", table, zeroTime))
-	sql = w.String()
+	sql = model.SQL{
+		Name: "tree_getSubTreeNodeCount",
+		SQL:  w.String(),
+	}
 	return sql
 }
 
-func MoveSubTree(table string, newPath string, oldPath string) (sql string) {
+func MoveSubTree(table string, newPath string, oldPath string) (sql model.SQL) {
 	nodeId, newParentId, _, depth := ParsePath(newPath)
 	diffDepth := depth - strings.Count(oldPath, "/") //计算深度变化量
 	var w bytes.Buffer
@@ -112,12 +128,19 @@ func MoveSubTree(table string, newPath string, oldPath string) (sql string) {
 	w.WriteString(fmt.Sprintf("update `%s` set `parent_id`='%s',`path`='%s',`depth`= `depth` + %d where `node_id`='%s';", table, newParentId, newPath, diffDepth, nodeId))
 	w.WriteString(fmt.Sprintf("update `%s` set `path`=replace(`path`,'%s','%s'),`depth`= `depth` + %d where `path` like '%s%%';", table, oldPath, newPath, diffDepth, oldPath))
 	w.WriteString("commit;")
+	sql = model.SQL{
+		Name: "tree_moveSubTree",
+		SQL:  w.String(),
+	}
 	return sql
 }
 
 // 删除节点和子节点，删除关联节点的 id 集合变量为 @nodeIds
-func DeleteSubTree(table string, nodePathPrefix string) (sql string) {
-	sql = fmt.Sprintf("update `%s` set `deleted_at`='%s' where `path` like '%s%%';", table, CurrentTime(), nodePathPrefix)
+func DeleteSubTree(table string, nodePathPrefix string) (sql model.SQL) {
+	sql = model.SQL{
+		Name: "tree_deleteSubTree",
+		SQL:  fmt.Sprintf("update `%s` set `deleted_at`='%s' where `path` like '%s%%';", table, CurrentTime(), nodePathPrefix),
+	}
 	return sql
 }
 
