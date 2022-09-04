@@ -9,6 +9,7 @@ import (
 )
 
 type Tree interface {
+	GetTable() (table string)
 	TableSQL() (sql string)
 	AddNode(simpleNode *SimpleNodeModel) (err error)
 	BatchAddNode(nodeList []*NodeModel) (err error)
@@ -32,6 +33,10 @@ func NewTree(table string, provider provider.ExecproviderInterface) Tree {
 			Provider: provider,
 		},
 	}
+}
+
+func (t *tree) GetTable() (table string) {
+	return t.Table
 }
 
 func (t *tree) GetProvider() (provider provider.ExecproviderInterface) {
