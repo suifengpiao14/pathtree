@@ -5,11 +5,6 @@ import (
 	"testing"
 )
 
-func TestTreeSQL(t *testing.T) {
-	out := TableSQL("tree_relation")
-	fmt.Println(out)
-}
-
 func GetTree() Tree {
 	return NewTree("attribute_tree", nil)
 }
