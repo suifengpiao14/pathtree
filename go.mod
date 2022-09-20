@@ -2,29 +2,25 @@ module gitea.programmerfamily.com/go/treemodel
 
 go 1.17
 
-require (
-	github.com/pkg/errors v0.9.1
-	github.com/suifengpiao14/model v0.0.0-00010101000000-000000000000
-	github.com/suifengpiao14/onebehaviorentity v0.0.1
-	github.com/suifengpiao14/templatemap v1.1.0
-)
+require github.com/suifengpiao14/onebehaviorentity v0.0.2
 
-replace github.com/suifengpiao14/onebehaviorentity => /Users/admin/Documents/go/onebehaviorentity
+//replace github.com/suifengpiao14/onebehaviorentity => /Users/admin/Documents/go/onebehaviorentity
+replace github.com/suifengpiao14/onebehaviorentity => D:\go\onebehaviorentity
 
 require (
 	github.com/dimfeld/httppath v0.0.0-20170720192232-ee938bf73598 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d // indirect
-	github.com/mattn/go-shellwords v1.0.12 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/sigurn/crc16 v0.0.0-20211026045750-20ab5afb07e3 // indirect
 	github.com/suifengpiao14/errorformatter v0.0.1 // indirect
 	github.com/suifengpiao14/jsonschemaline v0.0.3 // indirect
+	github.com/suifengpiao14/templatemap v1.1.0 // indirect
 	github.com/tidwall/gjson v1.14.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
@@ -40,6 +36,6 @@ require (
 	golang.org/x/tools v0.1.12 // indirect
 )
 
-replace github.com/suifengpiao14/templatemap => /Users/admin/Documents/go/templatemap
+//replace github.com/suifengpiao14/templatemap => /Users/admin/Documents/go/templatemap
 
-replace github.com/suifengpiao14/model => /Users/admin/Documents/go/model
+//replace github.com/suifengpiao14/model => /Users/admin/Documents/go/model

@@ -38,7 +38,6 @@ github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeME
 github.com/go-openapi/jsonpointer v0.19.5/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
 github.com/go-openapi/swag v0.19.5/go.mod h1:POnQmlKehdgb5mhVOsnJFsivZCEZ/vjK9gh66Z9tfKk=
 github.com/go-openapi/swag v0.19.13/go.mod h1:QYRuS/SOXUCsnplDa677K7+DxSOj6IPNl/eQntq43wQ=
-github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
 github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
@@ -101,7 +100,6 @@ github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d h1:Zj+PHjnhRYWBK6RqC
 github.com/manveru/faker v0.0.0-20171103152722-9fbc68a78c4d/go.mod h1:WZy8Q5coAB1zhY9AOBJP0O6J4BuDfbupUDavKY+I3+s=
 github.com/manveru/gobdd v0.0.0-20131210092515-f1a17fdd710b h1:3E44bLeN8uKYdfQqVQycPnaVviZdBLbizFhU49mtbe4=
 github.com/manveru/gobdd v0.0.0-20131210092515-f1a17fdd710b/go.mod h1:Bj8LjjP0ReT1eKt5QlKjwgi5AFm5mI6O1A2G4ChI0Ag=
-github.com/mattn/go-shellwords v1.0.12 h1:M2zGm7EW6UQJvDeQxo4T51eKPurbeFbe8WtebGE2xrk=
 github.com/mattn/go-shellwords v1.0.12/go.mod h1:EZzvwXDESEeg03EKmM+RmDnNOPKG4lLtQsUlTZDWQ8Y=
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mitchellh/copystructure v1.2.0/go.mod h1:qLl+cE2AmVv+CoeAwDPye/v+N2HKCj9FbZEVFJRxO9s=
@@ -137,6 +135,10 @@ github.com/suifengpiao14/errorformatter v0.0.1 h1:2mGBi/Tq3FfbyRBtaDf+9uwnGp0ajI
 github.com/suifengpiao14/errorformatter v0.0.1/go.mod h1:0iy+ug3oj3DuO4Qie7j7bklK0mJh19oc6ebMjruXYrw=
 github.com/suifengpiao14/jsonschemaline v0.0.3 h1:VZoMdSqhgZBIT2JkaIsRrz6aEoNqtlBCPAriCLL9p9c=
 github.com/suifengpiao14/jsonschemaline v0.0.3/go.mod h1:R1QLL3QMpc2T0opNLkKHBW3/l7z4LxdzP/bFzgamn4M=
+github.com/suifengpiao14/onebehaviorentity v0.0.1 h1:bMFvkTQpn9Xeslbz0nbBkYlZ4Xgg2pxj+Ti/P/cQf6Q=
+github.com/suifengpiao14/onebehaviorentity v0.0.1/go.mod h1:L+7LhVTpORZySPY/9y9fV+xnv55AkCO+EHitQzjM+vQ=
+github.com/suifengpiao14/templatemap v1.1.0 h1:A2hCQxOIV/9heHG5a9RUXJuuac+4NVb8AelMPkX9hDM=
+github.com/suifengpiao14/templatemap v1.1.0/go.mod h1:sexhIM9T+D0zBA0/WAbkhP5fMGZKzDtKHpE7bmQa6ig=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.14.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
