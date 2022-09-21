@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/suifengpiao14/onebehaviorentity"
@@ -167,27 +166,18 @@ func addNodeEffect(n *nodeEntity) (err error) {
 		var diffDepth int
 		n.Path, diffDepth = calPath(n, parent)
 		n.Depth = diffDepth + n.Depth
-
 	}
-
-	n, err = addNodePure(n, parent, LABEL_LEAF)
+	//merge input and node attr
+	data, err := n.Merge() //todo use sjson  chang n.input value
 	if err != nil {
 		return err
 	}
-	err = n._repository.AddNode(n)
+
+	err = n._repository.AddNode(data)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-//addNodePure 增加节点业务逻辑(独立成纯函数，方便测试)
-func addNodePure(n *nodeEntity, parent *nodeEntity, labelLeaf string) (out *nodeEntity, err error) {
-	n.Path = fmt.Sprintf("/%s", n.NodeID)
-	out = n
-
-	out.Depth = strings.Count(strings.Trim(n.Path, "/"), "/") + 1
-	return out, nil
 }
 
 //getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误
