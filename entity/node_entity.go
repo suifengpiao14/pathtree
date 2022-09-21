@@ -20,7 +20,6 @@ type nodeEntity struct {
 	ParentID    string `json:"parentId"`
 	Label       string `json:"label"`
 	Depth       int    `json:"depth"`
-	Order       int    `json:"order"`
 	Path        string `json:"path"`
 	_repository RepositoryInterface
 	_do         func() (out interface{}, err error)
@@ -152,15 +151,26 @@ func (n *nodeEntity) DeleteTree(nodeId string) (doEntity onebehaviorentity.Onebe
 
 //addNodeEffect 增加节点数据存储逻辑(非纯函数)
 func addNodeEffect(n *nodeEntity) (err error) {
-	var parent nodeEntity
+	var parent *nodeEntity
 	if n.ParentID != "" && n.ParentID != "0" {
-		err = n._repository.GetNode(n.ParentID, &parent)
+		err = n._repository.GetNode(n.ParentID, parent)
 		if err != nil {
 			err = errors.WithStack(err)
 			return err
 		}
 	}
-	n, err = addNodePure(n, &parent, LABEL_LEAF)
+	if parent != nil {
+		if parent.Label == LABEL_LEAF {
+			err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
+			return err
+		}
+		var diffDepth int
+		n.Path, diffDepth = calPath(n, parent)
+		n.Depth = diffDepth + n.Depth
+
+	}
+
+	n, err = addNodePure(n, parent, LABEL_LEAF)
 	if err != nil {
 		return err
 	}
@@ -175,13 +185,7 @@ func addNodeEffect(n *nodeEntity) (err error) {
 func addNodePure(n *nodeEntity, parent *nodeEntity, labelLeaf string) (out *nodeEntity, err error) {
 	n.Path = fmt.Sprintf("/%s", n.NodeID)
 	out = n
-	if parent != nil {
-		if parent.Label == labelLeaf {
-			err = errors.New(ERROR_ADD_NODE_TO_LABLE_LEAF)
-			return nil, err
-		}
-		out.Path = fmt.Sprintf("%s%s", parent.Path, n.Path)
-	}
+
 	out.Depth = strings.Count(strings.Trim(n.Path, "/"), "/") + 1
 	return out, nil
 }
@@ -195,7 +199,7 @@ func getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error)
 		return nil, err
 	}
 	if node.NodeID == "" {
-		err = errors.Errorf(ERROR_NOT_FOUND)
+		err = errors.Errorf("%s;nodeId:%s", ERROR_NOT_FOUND, nodeId)
 	}
 	return node, nil
 }
@@ -243,7 +247,7 @@ func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[stri
 	for _, nodeId := range nodeIdList {
 		_, ok := nodeMap[nodeId]
 		if !ok {
-			err = errors.Errorf("%s nodeId:%s", ERROR_NOT_FOUND, nodeId)
+			err = errors.Errorf("%s;nodeId:%s", ERROR_NOT_FOUND, nodeId)
 			return nil, err
 		}
 	}
@@ -259,7 +263,7 @@ func moveSubTreeEffect(r RepositoryInterface, nodeId string, newParentId string)
 	node := nodeMap[nodeId]
 	parent := nodeMap[newParentId]
 	newPath, diffDepth := calPath(node, parent)
-	newDepth := diffDepth + parent.Depth
+	newDepth := diffDepth + node.Depth
 	// 修改node 节点本身
 	err = r.UpdateParent(nodeId, newParentId, newPath, newDepth)
 	if err != nil {
@@ -285,7 +289,9 @@ func deleteTreeEffect(r RepositoryInterface, nodeId string) (err error) {
 	return nil
 }
 
-//calPath 计算两个节点迁移的新路径和深度
-func calPath(node *nodeEntity, parent *nodeEntity) (newPath string, diffDepth int) {
-	return
+//calPath 计算节点迁移的新路径和深度
+func calPath(node *nodeEntity, newParent *nodeEntity) (newPath string, diffDepth int) {
+	newPath = fmt.Sprintf("%s%s", newParent.Path, node.Path)
+	diffDepth = newParent.Depth - node.Depth + 1
+	return newPath, diffDepth
 }
