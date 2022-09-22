@@ -2,6 +2,8 @@ package entity
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/suifengpiao14/onebehaviorentity"
@@ -13,6 +15,7 @@ const (
 	ERROR_ADD_NODE_TO_LABLE_LEAF = "403:403000002:Leaf node is not allowed to add child nodes"
 )
 
+var DEPTH_MAX = 100000 //最大深度值
 //nodeModel 树结构模型(只能在当前包内使用,离开当前包无法使用)
 type nodeEntity struct {
 	NodeID      string `json:"nodeId"`
@@ -38,17 +41,17 @@ version=http://json-schema.org/draft-07/schema#,id=input,direction=in
 fullname=nodeId,dst=nodeId,required
 fullname=label,dst=label,required
 fullname=parentId,dst=parentId
-fullname=order,dst=order
 `
 
-func (n *nodeEntity) AddNode(input []byte) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
+func (n *nodeEntity) AddNode(nodeId string, label string, parentId string) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
 	node := &nodeEntity{
 		_repository: n._repository,
 	}
+	data := fmt.Sprintf(`{"nodeId":"%s","label":"%s","parentId":"%s"}`, nodeId, label, parentId)
 	doEntity = node.Build(node, addNodeInputSchema, "", func() (out interface{}, err error) {
-		err = addNodeEffect(node)
-		return nil, err
-	}).In(input)
+		out, err = addNodeEffect(node)
+		return out, err
+	}).In([]byte(data))
 	return doEntity
 }
 
@@ -63,7 +66,6 @@ fullname=nodeId,dst=nodeId,required
 fullname=parentId,dst=parentId,required
 fullname=label,dst=label,required
 fullname=depth,dst=depth,required
-fullname=order,dst=order,required
 fullname=path,dst=path,required
 `
 
@@ -72,43 +74,57 @@ func (n *nodeEntity) GetNode(nodeId string) (doEntity onebehaviorentity.Onebehav
 	data := fmt.Sprintf(`{"nodeId":"%s"}`, nodeId)
 	doEntity = node.Build(node, nodeIdInputSchema, nodeOutSchema, func() (out interface{}, err error) {
 		err = node._repository.GetNode(node.NodeID, &out)
-		if err != nil {
-			return nil, err
-		}
-		return out, nil
+		return out, err
 	}).In([]byte(data))
 	return doEntity
 }
 
-var getSubTreeLimitDepth = `
-version=http://json-schema.org/draft-07/schema#,id=input,direction=in
-fullname=parentId,dst=parentId,required
+var getAllParentInputSchema = `
+version=http://json-schema.org/draft-07/schema#,id=out,direction=out
+fullname=nodeId,dst=nodeId,required
+fullname=withOutSelf,dst=withOutSelf,required,enum=["true","false"]
 `
 
-func (n *nodeEntity) GetSubTreeLimitDepth(parentId string, depth int) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
+func (n *nodeEntity) GetAllParent(nodeId string, withOutSelf bool) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
 	node := &nodeEntity{}
-	data := fmt.Sprintf(`{"parentId":"%s"}`, parentId)
-	doEntity = node.Build(node, getSubTreeLimitDepth, nodeOutSchema, func() (out interface{}, err error) {
-		out, err = getSubTreeLimitDepthEffect(n._repository, parentId, depth)
-		if err != nil {
-			return nil, err
-		}
-		return out, nil
+	data := fmt.Sprintf(`{"nodeId":"%s","withOutSelf":"%s"}`, nodeId, strconv.FormatBool(withOutSelf))
+	doEntity = node.Build(node, nodeIdInputSchema, "", func() (out interface{}, err error) {
+		err = getAllParentEffect(n._repository, nodeId, withOutSelf, out)
+		return out, err
+	}).In([]byte(data))
+	return doEntity
+}
+
+var getSubTreeLimitDepthInputSchema = `
+version=http://json-schema.org/draft-07/schema#,id=input,direction=in
+fullname=parentId,dst=parentId,required
+fullname=depth,dst=depth,required
+fullname=withOutSelf,dst=withOutSelf,required,entm["true","false"]
+`
+
+func (n *nodeEntity) GetSubTreeLimitDepth(parentId string, depth int, withOutSelf bool) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
+	node := &nodeEntity{}
+	data := fmt.Sprintf(`{"parentId":"%s","depth","%d","withOutSelf":"%s"}`, parentId, depth, strconv.FormatBool(withOutSelf))
+	doEntity = node.Build(node, getSubTreeLimitDepthInputSchema, nodeOutSchema, func() (out interface{}, err error) {
+		out, err = getSubTreeLimitDepthEffect(n._repository, parentId, depth, withOutSelf)
+		return out, err
 	}).In([]byte(data))
 
 	return doEntity
 }
 
-//
-func (n *nodeEntity) GetSubTreeNodeCount(nodeId string) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
+var getSubTreeNodeCountInputSchema = `
+version=http://json-schema.org/draft-07/schema#,id=input,direction=in
+fullname=parentId,dst=parentId,required
+fullname=withOutSelf,dst=withOutSelf,required,entm["true","false"]
+`
+
+func (n *nodeEntity) GetSubTreeNodeCount(nodeId string, withOutSelf bool) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
 	node := &nodeEntity{}
-	data := fmt.Sprintf(`{"nodeId":"%s"}`, nodeId)
-	doEntity = node.Build(node, nodeIdInputSchema, "", func() (out interface{}, err error) {
-		out, err = getSubTreeNodeCountEffect(n._repository, nodeId)
-		if err != nil {
-			return nil, err
-		}
-		return out, nil
+	data := fmt.Sprintf(`{"nodeId":"%s","withOutSelf":"%s"}`, nodeId, strconv.FormatBool(withOutSelf))
+	doEntity = node.Build(node, getSubTreeNodeCountInputSchema, "", func() (out interface{}, err error) {
+		out, err = getSubTreeNodeCountEffect(n._repository, nodeId, withOutSelf)
+		return out, err
 	}).In([]byte(data))
 	return doEntity
 }
@@ -123,65 +139,60 @@ func (n *nodeEntity) MoveSubTree(nodeId string, newParentId string) (doEntity on
 	node := &nodeEntity{}
 	data := fmt.Sprintf(`{"nodeId":"%s","newParentId":"%s"}`, nodeId, newParentId)
 	doEntity = node.Build(node, MoveSubTreeInputSchema, "", func() (out interface{}, err error) {
-		err = moveSubTreeEffect(n._repository, nodeId, newParentId)
-		if err != nil {
-			return nil, err
-		}
-		return nil, nil
+		out, err = moveSubTreeEffect(n._repository, nodeId, newParentId)
+		return out, err
 	}).In([]byte(data))
 	return doEntity
-}
-func (n *nodeEntity) DeleteSubTree(nodePathPrefix string) (err error) {
-	return err
 }
 
 func (n *nodeEntity) DeleteTree(nodeId string) (doEntity onebehaviorentity.OnebehaviorentityDoInterface) {
 	node := &nodeEntity{}
 	data := fmt.Sprintf(`{"nodeId":"%s""}`, nodeId)
 	doEntity = node.Build(node, nodeIdInputSchema, "", func() (out interface{}, err error) {
-		err = deleteTreeEffect(n._repository, nodeId)
-		if err != nil {
-			return nil, err
-		}
-		return nil, nil
+		out, err = deleteTreeEffect(n._repository, nodeId)
+		return out, err
 	}).In([]byte(data))
 	return
 }
 
+type AddNodeOut struct {
+	NodeID   string `json:"nodeId"`
+	ParentID string `json:"parentId"`
+	Label    string `json:"label"`
+	Depth    int    `json:"depth"`
+	Path     string `json:"path"`
+}
+
 //addNodeEffect 增加节点数据存储逻辑(非纯函数)
-func addNodeEffect(n *nodeEntity) (err error) {
+func addNodeEffect(n *nodeEntity) (out *AddNodeOut, err error) {
+	out = &AddNodeOut{
+		NodeID:   n.NodeID,
+		ParentID: n.ParentID,
+		Label:    n.Label,
+	}
 	var parent *nodeEntity
 	if n.ParentID != "" && n.ParentID != "0" {
 		err = n._repository.GetNode(n.ParentID, parent)
 		if err != nil {
 			err = errors.WithStack(err)
-			return err
+			return nil, err
 		}
 	}
 	if parent != nil {
 		if parent.Label == LABEL_LEAF {
 			err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
-			return err
+			return nil, err
 		}
 		var diffDepth int
-		n.Path, diffDepth = calPath(n, parent)
-		n.Depth = diffDepth + n.Depth
-	}
-	//merge input and node attr
-	data, err := n.Merge() //todo use sjson  chang n.input value
-	if err != nil {
-		return err
+		out.Path, diffDepth = calPath(n, parent)
+		out.Depth = diffDepth + n.Depth
 	}
 
-	err = n._repository.AddNode(data)
-	if err != nil {
-		return err
-	}
-	return nil
+	return out, nil
 }
 
-//getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误
-func getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error) {
+//_getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误,仅内部逻辑调用repository使用，因为返回值明确为 nodeEntity，其它数据会丢失
+func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error) {
 	node = &nodeEntity{}
 	err = r.GetNode(nodeId, node)
 	if err != nil {
@@ -194,14 +205,42 @@ func getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error)
 	return node, nil
 }
 
-func getSubTreeLimitDepthEffect(r RepositoryInterface, parentId string, depth int) (out interface{}, err error) {
-	parentNode, err := getNode(r, parentId)
+func getAllParentEffect(r RepositoryInterface, nodeId string, withOutSelf bool, out interface{}) (err error) {
+	node, err := _getNode(r, nodeId)
+	if err != nil {
+		return err
+	}
+	nodeIdList := strings.Split(node.Path, "/")
+	if len(nodeIdList) == 0 {
+		return nil
+	}
+	if withOutSelf {
+		nodeIdList = nodeIdList[:len(nodeIdList)-1]
+	}
+	if len(nodeIdList) == 0 {
+		return nil
+	}
+	err = r.GetAllNodeByNodeIds(nodeIdList, out)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func getSubTreeLimitDepthEffect(r RepositoryInterface, parentId string, depth int, withOutSelf bool) (out interface{}, err error) {
+	parentNode, err := _getNode(r, parentId)
 	if err != nil {
 		err = errors.WithStack(err)
 		return nil, err
 	}
-	maxDepth := parentNode.Depth + depth
-	err = r.GetTreeLimitDepth(parentNode.Path, maxDepth, &out)
+	maxDepth := DEPTH_MAX
+	if depth > 0 {
+		maxDepth = parentNode.Depth + depth
+	}
+	parentPath := parentNode.Path
+	if withOutSelf {
+		parentPath = fmt.Sprintf("%s/", parentPath)
+	}
+	err = r.GetTreeLimitDepth(parentPath, maxDepth, &out)
 	if err != nil {
 		err = errors.WithStack(err)
 		return nil, err
@@ -209,12 +248,16 @@ func getSubTreeLimitDepthEffect(r RepositoryInterface, parentId string, depth in
 	return out, err
 }
 
-func getSubTreeNodeCountEffect(r RepositoryInterface, nodeId string) (count interface{}, err error) {
-	node, err := getNode(r, nodeId)
+func getSubTreeNodeCountEffect(r RepositoryInterface, nodeId string, withOutSelf bool) (count interface{}, err error) {
+	node, err := _getNode(r, nodeId)
 	if err != nil {
 		return 0, err
 	}
-	err = node._repository.GetTreeNodeCount(node.Path, &count)
+	parentPath := node.Path
+	if withOutSelf {
+		parentPath = fmt.Sprintf("%s/", parentPath)
+	}
+	err = node._repository.GetTreeNodeCount(parentPath, &count)
 	if err != nil {
 		return nil, err
 	}
@@ -244,39 +287,85 @@ func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[stri
 	return nodeMap, nil
 }
 
-func moveSubTreeEffect(r RepositoryInterface, nodeId string, newParentId string) (err error) {
+type MoveSubTreeOut struct {
+	NodeUpdateData     moveSubTreeOutNodeUpdateData        `json:"nodeUpdateData"`
+	ChildrenUpdateData []*moveSubTreeOutChildrenUpdateData `json:"childrenUpdateData"`
+}
+
+type moveSubTreeOutNodeUpdateData struct {
+	NodeID      string `json:"nodeId"`
+	NewParentId string `json:"newParentId"`
+	NewPath     string `json:"newPath"`
+	NewDepth    int    `json:"newDepth,string"`
+}
+
+type moveSubTreeOutChildrenUpdateData struct {
+	NodeID   string `json:"nodeId"`
+	NewPath  string `json:"newPath"`
+	NewDepth int    `json:"newDepth,string"`
+}
+
+func moveSubTreeEffect(r RepositoryInterface, nodeId string, newParentId string) (moveSubTreeOut *MoveSubTreeOut, err error) {
+	moveSubTreeOut = &MoveSubTreeOut{
+		NodeUpdateData:     moveSubTreeOutNodeUpdateData{},
+		ChildrenUpdateData: make([]*moveSubTreeOutChildrenUpdateData, 0),
+	}
 	nodeIdList := []string{nodeId, newParentId}
 	nodeMap, err := getAllNodeMap(r, nodeIdList)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	node := nodeMap[nodeId]
 	parent := nodeMap[newParentId]
-	newPath, diffDepth := calPath(node, parent)
+	nodeOldPath := node.Path
+	nodeNewPath, diffDepth := calPath(node, parent)
 	newDepth := diffDepth + node.Depth
 	// 修改node 节点本身
-	err = r.UpdateParent(nodeId, newParentId, newPath, newDepth)
-	if err != nil {
-		return err
+	moveSubTreeOut.NodeUpdateData = moveSubTreeOutNodeUpdateData{
+		NodeID:      nodeId,
+		NewParentId: newParentId,
+		NewPath:     nodeNewPath,
+		NewDepth:    newDepth,
 	}
-	// 更新子节点路径
-	err = r.UpdatePath(node.Path, newPath, diffDepth)
+	// 获取所有子节点
+	var childrenNodeList []*nodeEntity
+	err = r.GetTreeLimitDepth(node.Path, -1, &childrenNodeList)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	// 更新子节点路径和深度值
+	for _, children := range childrenNodeList {
+		newPath := strings.Replace(children.Path, nodeOldPath, nodeNewPath, 1)
+		newDepth := children.Depth + diffDepth
+		childrenUpdateData := &moveSubTreeOutChildrenUpdateData{
+			NodeID:   children.NodeID,
+			NewPath:  newPath,
+			NewDepth: newDepth,
+		}
+		moveSubTreeOut.ChildrenUpdateData = append(moveSubTreeOut.ChildrenUpdateData, childrenUpdateData)
+	}
+	return moveSubTreeOut, nil
 }
 
-func deleteTreeEffect(r RepositoryInterface, nodeId string) (err error) {
-	node, err := getNode(r, nodeId)
+func deleteTreeEffect(r RepositoryInterface, nodeId string) (nodList []string, err error) {
+	// 获取节点
+	var node nodeEntity
+	err = r.GetNode(nodeId, &node)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = r.DeleteTree(node.Path)
+	// 获取所有子节点
+	var childrenNodeList []*nodeEntity
+	err = r.GetTreeLimitDepth(node.Path, -1, &childrenNodeList)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	nodList = make([]string, 0)
+	for _, childern := range childrenNodeList {
+		nodList = append(nodList, childern.NodeID)
+	}
+
+	return nodList, nil
 }
 
 //calPath 计算节点迁移的新路径和深度
