@@ -33,19 +33,12 @@ func NewNodeEntity(repository RepositoryInterface) (node *nodeEntity) {
 }
 
 type AddNodeOut struct {
-	NodeID   string `json:"nodeId"`
-	ParentID string `json:"parentId"`
-	Label    string `json:"label"`
-	Depth    int    `json:"depth"`
-	Path     string `json:"path"`
+	Depth int    `json:"depth"`
+	Path  string `json:"path"`
 }
 
 func (n *nodeEntity) AddNode(nodeId string, parentId string, label string) (out *AddNodeOut, err error) {
-	out = &AddNodeOut{
-		NodeID:   n.NodeID,
-		ParentID: n.ParentID,
-		Label:    n.Label,
-	}
+	out = &AddNodeOut{}
 	var parent *nodeEntity
 	if n.ParentID != "" && n.ParentID != "0" {
 		err = n._repository.GetNode(n.ParentID, parent)
@@ -220,34 +213,6 @@ func (n *nodeEntity) DeleteTree(nodeId string) (nodeIdList []string, err error) 
 	return nodeIdList, nil
 }
 
-//addNodeEffect 增加节点数据存储逻辑(非纯函数)
-func addNodeEffect(n *nodeEntity) (out *AddNodeOut, err error) {
-	out = &AddNodeOut{
-		NodeID:   n.NodeID,
-		ParentID: n.ParentID,
-		Label:    n.Label,
-	}
-	var parent *nodeEntity
-	if n.ParentID != "" && n.ParentID != "0" {
-		err = n._repository.GetNode(n.ParentID, parent)
-		if err != nil {
-			err = errors.WithStack(err)
-			return nil, err
-		}
-	}
-	if parent != nil {
-		if parent.Label == LABEL_LEAF {
-			err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
-			return nil, err
-		}
-		var diffDepth int
-		out.Path, diffDepth = calPath(n, parent)
-		out.Depth = diffDepth + n.Depth
-	}
-
-	return out, nil
-}
-
 //_getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误,仅内部逻辑调用repository使用，因为返回值明确为 nodeEntity，其它数据会丢失
 func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error) {
 	node = &nodeEntity{}
@@ -258,6 +223,7 @@ func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error
 	}
 	if node.NodeID == "" {
 		err = errors.Errorf("%s;nodeId:%s", ERROR_NOT_FOUND, nodeId)
+		return nil, err
 	}
 	return node, nil
 }
