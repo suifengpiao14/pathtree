@@ -1,4 +1,4 @@
-package entity
+package treeentity
 
 import (
 	"fmt"

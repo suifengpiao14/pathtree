@@ -1,4 +1,4 @@
-package entity
+package treeentity
 
 type RepositoryInterface interface {
 	GetNode(nodeId string, output interface{}) (err error)

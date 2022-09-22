@@ -1,4 +1,4 @@
-module gitea.programmerfamily.com/go/treemodel
+module gitea.programmerfamily.com/go/treeentity
 
 go 1.17
 
