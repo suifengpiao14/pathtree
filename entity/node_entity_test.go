@@ -13,8 +13,7 @@ func TestGetNode(t *testing.T) {
 	nodeId := "first"
 	label := "test"
 	parentId := ""
-	var out entity.AddNodeOut
-	err := instance.AddNode(nodeId, label, parentId).Do().Out(&out).Error()
+	out, err := instance.AddNode(nodeId, parentId, label)
 	if err != nil {
 		panic(err)
 	}
