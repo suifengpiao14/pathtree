@@ -103,7 +103,7 @@ func (n *nodeEntity) GetSubTreeLimitDepth(parentId string, depth int, withOutSel
 	if withOutSelf {
 		parentPath = fmt.Sprintf("%s/", parentPath)
 	}
-	err = r.GetTreeLimitDepth(parentPath, maxDepth, out)
+	err = r.GetAllByPathPrefixWithDepth(parentPath, maxDepth, out)
 	if err != nil {
 		err = errors.WithStack(err)
 		return err
@@ -122,7 +122,7 @@ func (n *nodeEntity) GetSubTreeNodeCount(nodeId string, withOutSelf bool, count 
 	if withOutSelf {
 		parentPath = fmt.Sprintf("%s/", parentPath)
 	}
-	err = node._repository.GetTreeNodeCount(parentPath, count)
+	err = node._repository.CountByPathPrefix(parentPath, count)
 	if err != nil {
 		err = errors.WithStack(err)
 		return err
@@ -173,7 +173,7 @@ func (n *nodeEntity) MoveSubTree(nodeId string, newParentId string) (out *moveSu
 	}
 	// 获取所有子节点
 	var childrenNodeList []*nodeEntity
-	err = r.GetTreeLimitDepth(node.Path, -1, &childrenNodeList)
+	err = r.GetAllByPathPrefixWithDepth(node.Path, -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (n *nodeEntity) DeleteTree(nodeId string) (nodeIdList []string, err error) 
 	}
 	// 获取所有子节点
 	var childrenNodeList []*nodeEntity
-	err = r.GetTreeLimitDepth(node.Path, -1, &childrenNodeList)
+	err = r.GetAllByPathPrefixWithDepth(node.Path, -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
