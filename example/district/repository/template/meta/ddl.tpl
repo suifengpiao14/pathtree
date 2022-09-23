@@ -10,7 +10,7 @@ CREATE TABLE `district` (
   `is_deprecated` enum("0","1")  NOT NULL DEFAULT '0' COMMENT '是否废弃(0-弃用,1-废弃)',
   `created_at` timestamp  NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT  '更新时间',
-  `deleted_at` timestamp NOT NULL DEFAULT "0000-00-00 00:00:00"  COMMENT '删除时间',
+  `deleted_at` timestamp  DEFAULT NULL  COMMENT '删除时间',
   PRIMARY KEY (`id`),
   KEY `path` (`path`),
   KEY `code` (`code`,`deleted_at`)
