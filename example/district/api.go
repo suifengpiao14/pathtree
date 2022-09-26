@@ -8,7 +8,7 @@ import (
 )
 
 func Add(record DistrictKV) (err error) {
-	r := repository.NewSqlRepository()
+	r := repository.NewDoaRepository()
 	nodeEntity := treeentity.NewNodeEntity(r)
 	addData, err := nodeEntity.AddNode(record.NodeID, record.ParentID, record.Label)
 	if err != nil {

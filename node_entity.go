@@ -39,23 +39,21 @@ type AddNodeOut struct {
 
 func (n *nodeEntity) AddNode(nodeId string, parentId string, label string) (out *AddNodeOut, err error) {
 	out = &AddNodeOut{}
-	var parent *nodeEntity
-	if n.ParentID != "" && n.ParentID != "0" {
-		err = n._repository.GetNode(n.ParentID, parent)
+	var parent nodeEntity
+	if parentId != "" && parentId != "0" {
+		err = n._repository.GetNode(parentId, &parent)
 		if err != nil {
 			err = errors.WithStack(err)
 			return nil, err
 		}
 	}
-	if parent != nil {
-		if parent.Label == LABEL_LEAF {
-			err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
-			return nil, err
-		}
-		var diffDepth int
-		out.Path, diffDepth = calPath(n, parent)
-		out.Depth = diffDepth + n.Depth
+	if parent.Label == LABEL_LEAF {
+		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
+		return nil, err
 	}
+	var diffDepth int
+	out.Path, diffDepth = calPath(*n, parent)
+	out.Depth = diffDepth + n.Depth
 
 	return out, nil
 }
@@ -162,7 +160,7 @@ func (n *nodeEntity) MoveSubTree(nodeId string, newParentId string) (out *moveSu
 	node := nodeMap[nodeId]
 	parent := nodeMap[newParentId]
 	nodeOldPath := node.Path
-	nodeNewPath, diffDepth := calPath(node, parent)
+	nodeNewPath, diffDepth := calPath(*node, *parent)
 	newDepth := diffDepth + node.Depth
 	// 修改node 节点本身
 	out.NodeUpdateData = moveSubTreeOutNodeUpdateData{
@@ -252,7 +250,7 @@ func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[stri
 }
 
 //calPath 计算节点迁移的新路径和深度
-func calPath(node *nodeEntity, newParent *nodeEntity) (newPath string, diffDepth int) {
+func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth int) {
 	newPath = fmt.Sprintf("%s%s", newParent.Path, node.Path)
 	diffDepth = newParent.Depth - node.Depth + 1
 	return newPath, diffDepth
