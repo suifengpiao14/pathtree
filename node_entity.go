@@ -19,7 +19,7 @@ type nodeEntity struct {
 	NodeID      string `json:"nodeId"`
 	ParentID    string `json:"parentId"`
 	Label       string `json:"label"`
-	Depth       int    `json:"depth"`
+	Depth       int    `json:"depth,string"`
 	Path        string `json:"path"`
 	_repository RepositoryInterface
 }
@@ -51,10 +51,17 @@ func (n *nodeEntity) AddNode(nodeId string, parentId string, label string) (out 
 		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
 		return nil, err
 	}
+	path := fmt.Sprintf("/%s", nodeId)
 	var diffDepth int
-	out.Path, diffDepth = calPath(*n, parent)
-	out.Depth = diffDepth + n.Depth
-
+	node := nodeEntity{ // 重新赋值，不影响外部变量
+		NodeID:   nodeId,
+		ParentID: parentId,
+		Label:    label,
+		Path:     path,
+		Depth:    strings.Count(path, "/"),
+	}
+	out.Path, diffDepth = calPath(node, parent)
+	out.Depth = diffDepth + node.Depth
 	return out, nil
 }
 

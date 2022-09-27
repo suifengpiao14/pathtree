@@ -46,12 +46,13 @@ func (r *doaRepository) AddNode(data []byte) (err error) {
 	}
 
 	entity := DistrictInsertInput{
-		Code:       input.NodeID,
-		Depth:      input.Depth,
-		Label:      input.Label,
-		ParentCode: input.ParentID,
-		Path:       input.Path,
-		Title:      input.Title,
+		Code:         input.NodeID,
+		Depth:        input.Depth,
+		Label:        input.Label,
+		ParentCode:   input.ParentID,
+		Path:         input.Path,
+		Title:        input.Title,
+		IsDeprecated: "0",
 	}
 
 	url := fmt.Sprintf("%s/api/rent/v1/district/insert", DoaHost)
