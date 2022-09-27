@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
+	"github.com/tidwall/sjson"
 )
 
 type doaRepository struct{}
@@ -79,6 +80,15 @@ func (r *doaRepository) CountByPathPrefix(path string, output interface{}) (err 
 	return err
 }
 func (r *doaRepository) GetAllNodeByNodeIds(nodeIds []string, output interface{}) (err error) {
+	data, err := sjson.Set("", "codeList", nodeIds)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s/api/rent/v1/district/get_all_by_code", DoaHost)
+	err = Curl(url, data, output)
+	if err != nil {
+		return err
+	}
 	return err
 }
 

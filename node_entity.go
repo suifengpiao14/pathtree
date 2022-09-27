@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	LABEL_LEAF                   = "leaf"
-	ERROR_NOT_FOUND              = "404:404000001:not found"
-	ERROR_ADD_NODE_TO_LABLE_LEAF = "403:403000002:Leaf node is not allowed to add child nodes"
+	LABEL_LEAF                = "leaf"
+	ERROR_NOT_FOUND           = "404:404000001:not found"
+	ERROR_ADD_NODE_LABLE_LEAF = "403:403000002:Leaf node is not allowed to add child nodes"
+	ERROR_ADD_NODE_EXISTS     = "400:403000003:node id exists"
 )
 
 var DEPTH_MAX = 100000 //最大深度值
@@ -40,15 +41,28 @@ type AddNodeOut struct {
 func (n *nodeEntity) AddNode(nodeId string, parentId string, label string) (out *AddNodeOut, err error) {
 	out = &AddNodeOut{}
 	var parent nodeEntity
+	nodeIdList := make([]string, 0)
+	nodeIdList = append(nodeIdList, nodeId)
 	if parentId != "" && parentId != "0" {
-		err = n._repository.GetNode(parentId, &parent)
-		if err != nil {
-			err = errors.WithStack(err)
+		nodeIdList = append(nodeIdList, parentId)
+	}
+	nodeList := make([]nodeEntity, 0)
+	err = n._repository.GetAllNodeByNodeIds(nodeIdList, &nodeList)
+	if err != nil {
+		err = errors.WithStack(err)
+		return nil, err
+	}
+	for _, node := range nodeList {
+		switch node.NodeID {
+		case nodeId:
+			err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_EXISTS, nodeId)
 			return nil, err
+		case parentId:
+			parent = node
 		}
 	}
 	if parent.Label == LABEL_LEAF {
-		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_TO_LABLE_LEAF, parent.NodeID)
+		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_LABLE_LEAF, parent.NodeID)
 		return nil, err
 	}
 	path := fmt.Sprintf("/%s", nodeId)
