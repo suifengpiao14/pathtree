@@ -11,7 +11,7 @@
 {{end}}
 
 {{define "CountByPathPrefix"}}
-    select count(*) from `district` where `path` like :PathPrefix and `deleted_at` is null;
+    select count(*) from `district` where `path` like :PathPrefix and `depth`<=:Depth and `deleted_at` is null;
 {{end}}
 
 {{define "DeleteByCode"}}

@@ -94,7 +94,7 @@ func (n *nodeEntity) GetAllParent(nodeId string, withOutSelf bool, out interface
 	if len(nodeIdList) == 0 {
 		return nil
 	}
-	if withOutSelf {
+	if !withOutSelf {
 		nodeIdList = nodeIdList[:len(nodeIdList)-1]
 	}
 	if len(nodeIdList) == 0 {
@@ -107,7 +107,7 @@ func (n *nodeEntity) GetAllParent(nodeId string, withOutSelf bool, out interface
 	return nil
 }
 
-func (n *nodeEntity) GetSubTreeLimitDepth(parentId string, depth int, withOutSelf bool, out interface{}) (err error) {
+func (n *nodeEntity) GetSubTree(parentId string, depth int, withOutSelf bool, out interface{}) (err error) {
 	r := n._repository
 	parentNode, err := _getNode(r, parentId)
 	if err != nil {
@@ -119,29 +119,10 @@ func (n *nodeEntity) GetSubTreeLimitDepth(parentId string, depth int, withOutSel
 		maxDepth = parentNode.Depth + depth
 	}
 	parentPath := parentNode.Path
-	if withOutSelf {
+	if !withOutSelf {
 		parentPath = fmt.Sprintf("%s/", parentPath)
 	}
-	err = r.GetAllByPathPrefixWithDepth(parentPath, maxDepth, out)
-	if err != nil {
-		err = errors.WithStack(err)
-		return err
-	}
-	return nil
-}
-
-func (n *nodeEntity) GetSubTreeNodeCount(nodeId string, withOutSelf bool, count *int) (err error) {
-	r := n._repository
-	node, err := _getNode(r, nodeId)
-	if err != nil {
-		err = errors.WithStack(err)
-		return err
-	}
-	parentPath := node.Path
-	if withOutSelf {
-		parentPath = fmt.Sprintf("%s/", parentPath)
-	}
-	err = node._repository.CountByPathPrefix(parentPath, count)
+	err = r.GetAllByPathPrefix(parentPath, maxDepth, out)
 	if err != nil {
 		err = errors.WithStack(err)
 		return err
@@ -155,10 +136,8 @@ type moveSubTreeOut struct {
 }
 
 type moveSubTreeOutNodeUpdateData struct {
-	NodeID      string `json:"nodeId"`
+	moveSubTreeOutChildrenUpdateData
 	NewParentId string `json:"newParentId"`
-	NewPath     string `json:"newPath"`
-	NewDepth    int    `json:"newDepth,string"`
 }
 
 type moveSubTreeOutChildrenUpdateData struct {
@@ -185,14 +164,16 @@ func (n *nodeEntity) MoveSubTree(nodeId string, newParentId string) (out *moveSu
 	newDepth := diffDepth + node.Depth
 	// 修改node 节点本身
 	out.NodeUpdateData = moveSubTreeOutNodeUpdateData{
-		NodeID:      nodeId,
 		NewParentId: newParentId,
-		NewPath:     nodeNewPath,
-		NewDepth:    newDepth,
+	}
+	out.NodeUpdateData.moveSubTreeOutChildrenUpdateData = moveSubTreeOutChildrenUpdateData{
+		NodeID:   nodeId,
+		NewPath:  nodeNewPath,
+		NewDepth: newDepth,
 	}
 	// 获取所有子节点
 	var childrenNodeList []*nodeEntity
-	err = r.GetAllByPathPrefixWithDepth(node.Path, -1, &childrenNodeList)
+	err = r.GetAllByPathPrefix(node.Path, -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +201,7 @@ func (n *nodeEntity) DeleteTree(nodeId string) (nodeIdList []string, err error) 
 	}
 	// 获取所有子节点
 	var childrenNodeList []*nodeEntity
-	err = r.GetAllByPathPrefixWithDepth(node.Path, -1, &childrenNodeList)
+	err = r.GetAllByPathPrefix(node.Path, -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
