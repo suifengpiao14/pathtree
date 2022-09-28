@@ -15,7 +15,7 @@ const (
 )
 
 var DEPTH_MAX = 100000 //最大深度值
-//nodeModel 树结构模型(只能在当前包内使用,离开当前包无法使用)
+// nodeModel 树结构模型(只能在当前包内使用,离开当前包无法使用)
 type nodeEntity struct {
 	NodeID      string `json:"nodeId"`
 	ParentID    string `json:"parentId"`
@@ -25,7 +25,7 @@ type nodeEntity struct {
 	_repository RepositoryInterface
 }
 
-//NewNodeEntity 包外唯一获得nodeEntity 方法
+// NewNodeEntity 包外唯一获得nodeEntity 方法
 func NewNodeEntity(repository RepositoryInterface) (node *nodeEntity) {
 	node = &nodeEntity{
 		_repository: repository,
@@ -213,7 +213,7 @@ func (n *nodeEntity) DeleteTree(nodeId string) (nodeIdList []string, err error) 
 	return nodeIdList, nil
 }
 
-//_getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误,仅内部逻辑调用repository使用，因为返回值明确为 nodeEntity，其它数据会丢失
+// _getNode 根据节点ID获取节点数据，找不到数据，抛出错误 ERROR_NOT_FOUND,也可以由provider 直接返回错误,仅内部逻辑调用repository使用，因为返回值明确为 nodeEntity，其它数据会丢失
 func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error) {
 	node = &nodeEntity{}
 	err = r.GetNode(nodeId, node)
@@ -228,7 +228,7 @@ func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error
 	return node, nil
 }
 
-//getAllNodeMap 批量获取节点，并且转换为map格式，其中一个nodeId有缺失，即返回错误
+// getAllNodeMap 批量获取节点，并且转换为map格式，其中一个nodeId有缺失，即返回错误
 func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[string]*nodeEntity, err error) {
 	nodeList := make([]*nodeEntity, 0)
 	err = r.GetAllNodeByNodeIds(nodeIdList, nodeList)
@@ -251,9 +251,14 @@ func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[stri
 	return nodeMap, nil
 }
 
-//calPath 计算节点迁移的新路径和深度
+// calPath 计算节点迁移的新路径和深度
 func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth int) {
 	newPath = fmt.Sprintf("%s%s", newParent.Path, node.Path)
 	diffDepth = newParent.Depth - node.Depth + 1
 	return newPath, diffDepth
+}
+
+func BuildTree(jsonStr string) (out string, err error) {
+
+	return
 }

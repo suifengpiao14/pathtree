@@ -54,5 +54,13 @@ func MoveNode(code string, newParentCode string) (err error) {
 	if err != nil {
 		return err
 	}
+	b, err := json.Marshal(moveData)
+	if err != nil {
+		return err
+	}
+	err = r.BatchUpdatePath(b)
+	if err != nil {
+		return err
+	}
 	return nil
 }

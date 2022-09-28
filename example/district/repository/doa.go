@@ -87,15 +87,7 @@ func (r *doaRepository) GetAllByPathPrefix(parentPath string, depth int, output 
 
 func (r *doaRepository) BatchUpdatePath(input []byte) (err error) {
 	url := fmt.Sprintf("%s/api/rent/v1/district/batchUpdatePath", DoaHost)
-	resStr, err := Curl(url, input)
-	if err != nil {
-		return err
-	}
-	data, err := DataFill(resStr)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal([]byte(data), output)
+	_, err = Curl(url, input)
 	if err != nil {
 		return err
 	}
@@ -162,7 +154,7 @@ var JsonKeyMap = map[string]string{
 	"path":       "path",
 }
 
-//DataFill 数据填充，当json数据中的key 和目标结构体json key 不一致时，需要转换key，此处采用复制方式达到目的，方便兼容多结构体json key
+// DataFill 数据填充，当json数据中的key 和目标结构体json key 不一致时，需要转换key，此处采用复制方式达到目的，方便兼容多结构体json key
 func DataFill(jsonStr string) (out string, err error) {
 	out = strings.TrimSpace(jsonStr)
 	isArr := false
