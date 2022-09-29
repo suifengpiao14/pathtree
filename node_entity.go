@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 const (
@@ -260,51 +259,48 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
-type treeNode struct {
-	Content  string
-	parentId string
-	nodeId   string
-	Children []*treeNode `json:"children"`
-}
-
-func (t *treeNode) MarshalJson() (b []byte, err error) {
-	return []byte(t.Content), nil
-}
-
 func BuildTree(jsonStr string) (out string) {
-	nodeIdResultList := gjson.Get(jsonStr, "#.nodeId").Array()
-	nodeParentIdResultList := gjson.Get(jsonStr, "#.parentId").Array()
-	treeNodeIdMap := make(map[string]*treeNode)
-	var tree []*treeNode
-	for i, result := range nodeIdResultList {
-		nodeId := result.String()
-		parentId := nodeParentIdResultList[i].String()
-		contentPath := fmt.Sprintf("%d", i)
-		content := gjson.Get(jsonStr, contentPath).String()
-		_, ok := treeNodeIdMap[parentId]
-		if parentId != "" && !ok {
-			parent := &treeNode{
-				nodeId: parentId,
-			}
-			treeNodeIdMap[parent.nodeId] = parent
-		}
-		node, ok := treeNodeIdMap[nodeId]
-		if !ok {
-			node = &treeNode{
-				nodeId: nodeId,
-			}
-			treeNodeIdMap[node.nodeId] = node
-		}
-		node.parentId = parentId
-		node.Content = content
+	tree := make([]*map[string]interface{}, 0)
+	recordList := make([]*map[string]interface{}, 0)
+	treeNodeMap := make(map[string]*map[string]interface{})
+	err := json.Unmarshal([]byte(jsonStr), &recordList)
+	if err != nil {
+		panic(err)
+	}
 
+	for _, record := range recordList {
+		nodeId := (*record)["nodeId"].(string)
+		parentId := (*record)["parentId"].(string)
+		_, ok := treeNodeMap[parentId]
+		if parentId != "" && !ok {
+			parent := &map[string]interface{}{
+				"nodeId": parentId,
+			}
+			treeNodeMap[parentId] = parent
+		}
+		node := record
+		if tmpNode, ok := treeNodeMap[nodeId]; ok {
+			children, ok := (*tmpNode)["children"]
+			if ok {
+				(*node)["children"] = children
+			}
+
+		}
+		treeNodeMap[nodeId] = node
 		// 根节点收集
-		if node.parentId == "" {
+		if parentId == "" {
 			tree = append(tree, node)
 		} else {
 			// 子节点收集
-			treeNodeIdMap[node.parentId].Children = append(treeNodeIdMap[node.parentId].Children, node)
+			children := make([]*map[string]interface{}, 0)
+			childrenIterface, ok := (*(treeNodeMap[parentId]))["children"]
+			if ok {
+				children = childrenIterface.([]*map[string]interface{})
+			}
+			children = append(children, node)
+			(*(treeNodeMap[parentId]))["children"] = children
 		}
+
 	}
 	b, err := json.Marshal(tree)
 	if err != nil {
