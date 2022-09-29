@@ -1,6 +1,7 @@
 package treeentity
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -259,36 +260,56 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
-type gsonPathKV struct {
-	Path          string
-	ChildrenCount int
+type treeNode struct {
+	Content  string
+	parentId string
+	nodeId   string
+	Children []*treeNode `json:"children"`
 }
 
-func BuildTree(jsonStr string) (out string, err error) {
-	nodeIdResultList := gjson.Get(jsonStr, ".#.nodeId").Array()
-	nodeIdList := make([]string, len(nodeIdResultList))
+func (t *treeNode) MarshalJson() (b []byte, err error) {
+	return []byte(t.Content), nil
+}
+
+func BuildTree(jsonStr string) (out string) {
+	nodeIdResultList := gjson.Get(jsonStr, "#.nodeId").Array()
+	nodeParentIdResultList := gjson.Get(jsonStr, "#.parentId").Array()
+	treeNodeIdMap := make(map[string]*treeNode)
+	var tree []*treeNode
 	for i, result := range nodeIdResultList {
-		nodeIdList[i] = result.String()
-	}
-	nodeParentIdResultList := gjson.Get(jsonStr, ".#.nodeId").Array()
-	nodeParentIdList := make([]string, len(nodeParentIdResultList))
-	for i, result := range nodeParentIdResultList {
-		nodeParentIdList[i] = result.String()
-	}
-	gsonPathMap := make(map[string]gsonPathKV)
-	for i, nodeId := range nodeIdList {
-		parentId := nodeParentIdList[i]
-		gsonPath := gsonPathKV{}
-		if gsonPathtmp, ok := gsonPathMap[parentId]; ok {
-			gsonPath = gsonPathtmp
-
+		nodeId := result.String()
+		parentId := nodeParentIdResultList[i].String()
+		contentPath := fmt.Sprintf("%d", i)
+		content := gjson.Get(jsonStr, contentPath).String()
+		_, ok := treeNodeIdMap[parentId]
+		if parentId != "" && !ok {
+			parent := &treeNode{
+				nodeId: parentId,
+			}
+			treeNodeIdMap[parent.nodeId] = parent
 		}
-		gsonPath.ChildrenCount = gsonPath.ChildrenCount + 1
-		childrenPath := fmt.Sprintf("%s.children.%d.%s", gsonPath.Path, gsonPath.ChildrenCount, nodeId)
-		gsonPathMap[nodeId] = gsonPathKV{
-			Path: childrenPath,
+		node, ok := treeNodeIdMap[nodeId]
+		if !ok {
+			node = &treeNode{
+				nodeId: nodeId,
+			}
+			treeNodeIdMap[node.nodeId] = node
+		}
+		node.parentId = parentId
+		node.Content = content
+
+		// 根节点收集
+		if node.parentId == "" {
+			tree = append(tree, node)
+		} else {
+			// 子节点收集
+			treeNodeIdMap[node.parentId].Children = append(treeNodeIdMap[node.parentId].Children, node)
 		}
 	}
-
-	return
+	b, err := json.Marshal(tree)
+	if err != nil {
+		panic(err)
+	}
+	out = string(b)
+	return out
 }

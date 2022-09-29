@@ -19,3 +19,15 @@ func TestGetNode(t *testing.T) {
 	}
 	fmt.Println(out)
 }
+
+func TestBuildTree(t *testing.T) {
+	jsonStr := `[
+	
+	{"nodeId":"B","parentId":"A","name":"first"},
+	{"nodeId":"C","parentId":"B","name":"first-chirden"},
+	{"nodeId":"A","parentId":"","name":"root"},
+	{"nodeId":"D","parentId":"A","name":"second"}
+	]`
+	out := treeentity.BuildTree(jsonStr)
+	fmt.Println(out)
+}
