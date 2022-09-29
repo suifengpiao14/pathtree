@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 )
 
 const (
@@ -258,7 +259,36 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
+type gsonPathKV struct {
+	Path          string
+	ChildrenCount int
+}
+
 func BuildTree(jsonStr string) (out string, err error) {
+	nodeIdResultList := gjson.Get(jsonStr, ".#.nodeId").Array()
+	nodeIdList := make([]string, len(nodeIdResultList))
+	for i, result := range nodeIdResultList {
+		nodeIdList[i] = result.String()
+	}
+	nodeParentIdResultList := gjson.Get(jsonStr, ".#.nodeId").Array()
+	nodeParentIdList := make([]string, len(nodeParentIdResultList))
+	for i, result := range nodeParentIdResultList {
+		nodeParentIdList[i] = result.String()
+	}
+	gsonPathMap := make(map[string]gsonPathKV)
+	for i, nodeId := range nodeIdList {
+		parentId := nodeParentIdList[i]
+		gsonPath := gsonPathKV{}
+		if gsonPathtmp, ok := gsonPathMap[parentId]; ok {
+			gsonPath = gsonPathtmp
+
+		}
+		gsonPath.ChildrenCount = gsonPath.ChildrenCount + 1
+		childrenPath := fmt.Sprintf("%s.children.%d.%s", gsonPath.Path, gsonPath.ChildrenCount, nodeId)
+		gsonPathMap[nodeId] = gsonPathKV{
+			Path: childrenPath,
+		}
+	}
 
 	return
 }
