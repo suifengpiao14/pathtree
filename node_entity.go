@@ -259,22 +259,24 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
-func BuildTree(jsonStr string) (out string) {
+//BuildTree convert Two-dimensional array to tree
+func BuildTree(jsonStr string, nodeIdKey string, parentIdKey string) (out string, err error) {
 	tree := make([]*map[string]interface{}, 0)
 	recordList := make([]*map[string]interface{}, 0)
 	treeNodeMap := make(map[string]*map[string]interface{})
-	err := json.Unmarshal([]byte(jsonStr), &recordList)
+	err = json.Unmarshal([]byte(jsonStr), &recordList)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	for _, record := range recordList {
-		nodeId := (*record)["nodeId"].(string)
-		parentId := (*record)["parentId"].(string)
+		nodeId := fmt.Sprintf("%v", (*record)[nodeIdKey])     //change to string
+		parentId := fmt.Sprintf("%v", (*record)[parentIdKey]) //change to string
 		_, ok := treeNodeMap[parentId]
-		if parentId != "" && !ok {
+		emptyParentId := parentId == "" || parentId == "0" // int 0 will be "0" after fmt.Sprintf("%v",)
+		if !emptyParentId && !ok {
 			parent := &map[string]interface{}{
-				"nodeId": parentId,
+				nodeIdKey: parentId,
 			}
 			treeNodeMap[parentId] = parent
 		}
@@ -288,7 +290,7 @@ func BuildTree(jsonStr string) (out string) {
 		}
 		treeNodeMap[nodeId] = node
 		// 根节点收集
-		if parentId == "" {
+		if emptyParentId {
 			tree = append(tree, node)
 		} else {
 			// 子节点收集
@@ -304,8 +306,8 @@ func BuildTree(jsonStr string) (out string) {
 	}
 	b, err := json.Marshal(tree)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	out = string(b)
-	return out
+	return out, nil
 }
