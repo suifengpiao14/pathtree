@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"gitea.programmerfamily.com/go/treeentity/repository"
 	"github.com/pkg/errors"
 )
 
@@ -257,6 +258,15 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	newPath = fmt.Sprintf("%s%s", newParent.Path, node.Path)
 	diffDepth = newParent.Depth - node.Depth + 1
 	return newPath, diffDepth
+}
+
+// BatchAddPathAndDepth 给所有数据，增加path和depth字段，方便批量数据导入
+func BatchAddPathAndDepth(data string) {
+	r := repository.NewMemoryRepository(data)
+	node := NewNodeEntity(r)
+	nodeIdList := gjson(data, "#.nodeId")
+	node.AddNode()
+
 }
 
 //BuildTree convert Two-dimensional array to tree
