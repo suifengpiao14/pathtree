@@ -2,6 +2,8 @@ package repository
 
 import (
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 type memoryRepository struct {
@@ -18,6 +20,10 @@ func NewMemoryRepository(data []map[string]interface{}, nodeIdKey string, parent
 	}
 	for _, record := range data {
 		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
+		if _, ok := rep.data[nodeId]; ok {
+			err := errors.Errorf("dumplicate %s:%s", nodeIdKey, nodeId)
+			panic(err)
+		}
 		record["nodeId"] = nodeId
 		record["parentId"] = record[parentIdKey]
 		rep.data[nodeId] = record
