@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"gitea.programmerfamily.com/go/treeentity/repository"
 	"github.com/pkg/errors"
 )
 
@@ -260,10 +259,19 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
-// BatchAddPathAndDepth 给所有数据，增加path和depth字段，方便批量数据导入
+// BatchAddPathAndDepth 给所有数据，增加path和depth字段，方便批量数据导入 纯函数
 func BatchAddPathAndDepth(data []map[string]interface{}, nodeIdKey string, parentIdKey string) (out []map[string]interface{}, err error) {
-	r := repository.NewMemoryRepository(data, nodeIdKey, parentIdKey)
-	nodeIdParentIdMap := r.AllNodeIdParentIdMap()
+	nodeIdParentIdMap := map[string]string{}
+	dataMap := map[string]map[string]interface{}{}
+	for _, record := range data {
+		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
+		parentId := fmt.Sprintf("%v", record[parentIdKey])
+		if _, ok := nodeIdParentIdMap[nodeId]; ok {
+			err := errors.Errorf("dumplicate %s:%s", nodeIdKey, nodeId)
+			return nil, err
+		}
+		nodeIdParentIdMap[nodeId] = parentId
+	}
 	for _, record := range data {
 		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
 		parentId := fmt.Sprintf("%v", record[parentIdKey])
@@ -290,9 +298,14 @@ func BatchAddPathAndDepth(data []map[string]interface{}, nodeIdKey string, paren
 		}
 		path := w.String()
 		depth := strings.Count(path, "/")
-		r.UpdatePath(nodeId, path, depth)
+		record["path"] = path
+		record["depth"] = depth
+		dataMap[nodeId] = record
 	}
-	out = r.GetData()
+	out = make([]map[string]interface{}, 0)
+	for _, record := range dataMap {
+		out = append(out, record)
+	}
 	return out, nil
 }
 
