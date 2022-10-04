@@ -355,3 +355,7 @@ func BuildTree(records []map[string]interface{}, nodeIdKey string, parentIdKey s
 	}
 	return tree, nil
 }
+
+func SubNodeCount(records []map[string]interface{}, pathKey string) (out []map[string]interface{}) {
+	return
+}
