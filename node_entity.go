@@ -12,7 +12,7 @@ const (
 	LABEL_LEAF                = "leaf"
 	ERROR_NOT_FOUND           = "404:404000001:not found"
 	ERROR_ADD_NODE_LABLE_LEAF = "403:403000002:Leaf node is not allowed to add child nodes"
-	ERROR_ADD_NODE_EXISTS     = "400:403000003:node id exists"
+	ERROR_ADD_NODE_EXISTS     = "400:400000003:node id exists"
 )
 
 var DEPTH_MAX = 100000 //最大深度值
