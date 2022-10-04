@@ -154,7 +154,7 @@ func (n *nodeEntity) MoveSubTree(nodeId string, newParentId string) (out *moveSu
 		ChildrenUpdateData: make([]*moveSubTreeOutChildrenUpdateData, 0),
 	}
 	nodeIdList := []string{nodeId, newParentId}
-	nodeMap, err := getAllNodeMap(r, nodeIdList)
+	nodeMap, err := _getAllNodeMap(r, nodeIdList)
 	if err != nil {
 		return nil, err
 	}
@@ -229,8 +229,8 @@ func _getNode(r RepositoryInterface, nodeId string) (node *nodeEntity, err error
 	return node, nil
 }
 
-// getAllNodeMap 批量获取节点，并且转换为map格式，其中一个nodeId有缺失，即返回错误
-func getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[string]*nodeEntity, err error) {
+// _getAllNodeMap 批量获取节点，并且转换为map格式，其中一个nodeId有缺失，即返回错误
+func _getAllNodeMap(r RepositoryInterface, nodeIdList []string) (nodeMap map[string]*nodeEntity, err error) {
 	nodeList := make([]*nodeEntity, 0)
 	err = r.GetAllNodeByNodeIds(nodeIdList, nodeList)
 	if err != nil {
