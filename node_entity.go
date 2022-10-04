@@ -356,6 +356,32 @@ func BuildTree(records []map[string]interface{}, nodeIdKey string, parentIdKey s
 	return tree, nil
 }
 
-func SubNodeCount(records []map[string]interface{}, pathKey string) (out []map[string]interface{}) {
-	return
+// ChildrenCount count children number
+func ChildrenCount(records []map[string]interface{}, nodeIdKey string, pathKey string) (out []map[string]interface{}) {
+	var w bytes.Buffer
+	for _, record := range records {
+
+		path := fmt.Sprintf("%v", record[pathKey])
+		_, err := w.WriteString(path)
+		if err != nil {
+			panic(err)
+		}
+	}
+	countMap := make(map[string]int)
+	arr := strings.Split(w.String(), "/")
+	for _, nodeId := range arr {
+		if _, ok := countMap[nodeId]; !ok {
+			countMap[nodeId] = 0
+		}
+		countMap[nodeId]++
+	}
+	out = make([]map[string]interface{}, 0)
+	for _, record := range records {
+		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
+		count := countMap[nodeId]
+		count = count - 1
+		record["childrenCount"] = fmt.Sprintf("%d", count)
+		out = append(out, record)
+	}
+	return out
 }

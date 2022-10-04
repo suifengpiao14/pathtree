@@ -71,3 +71,19 @@ func TestBatchAddPathAndDepth(t *testing.T) {
 	str := string(b)
 	fmt.Println(str)
 }
+
+func TestChildrenCount(t *testing.T) {
+	data := `[
+		{"code":1,"parentCode":0,"path":"/1"},
+		{"code":2,"parentCode":1,"path":"/1/2"},
+		{"code":3,"parentCode":2,"path":"/1/2/3"},
+		{"code":4,"parentCode":1,"path":"/1/4"}
+	]`
+	records := make([]map[string]interface{}, 0)
+	err := json.Unmarshal([]byte(data), &records)
+	if err != nil {
+		panic(err)
+	}
+	out := treeentity.ChildrenCount(records, "code", "path")
+	fmt.Println(out)
+}
