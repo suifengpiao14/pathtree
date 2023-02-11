@@ -11,7 +11,6 @@ type Repository interface {
 	AddNode(node Node) (err error)
 	UpdateNode(node Node) (err error)
 	UpdateBatchNode(nodes []Node) (err error)
-	GetNode(nodeId string, node Node) (err error)
 	GetAllByPathPrefix(pathPrefix string, depth int, nodes *[]Node) (err error)
 	GetAllNodeByNodeIds(nodeIds []string, nodes *[]Node) (err error)
 }
