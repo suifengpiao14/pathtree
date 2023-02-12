@@ -28,8 +28,14 @@ type Node interface {
 }
 type Nodes []Node
 
+type Tree struct {
+	Node
+}
+
 // Add 节点
-func Add(n Node) (err error) {
+func (t Tree) Add() (err error) {
+
+	n := t
 	parent := n.GetParent()
 	if parent != nil && !parent.IsLeaf() {
 		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_LABLE_LEAF, parent.GetNodeID())
@@ -38,7 +44,7 @@ func Add(n Node) (err error) {
 	path := fmt.Sprintf("/%s", n.GetNodeID())
 	n.SetPath(path)
 	var diffDepth int
-	path, diffDepth = calPathAndDepth(n)
+	path, diffDepth = t.calPathAndDepth()
 	depth := diffDepth + n.GetDepth()
 	n.SetPath(path)
 	n.SetDepth(depth)
@@ -47,7 +53,8 @@ func Add(n Node) (err error) {
 }
 
 // GetAllParent 获取节点的所有父节点
-func GetAllParent(n Node, withOutSelf bool, out *[]Node) (err error) {
+func (t Tree) GetAllParent(withOutSelf bool, out *[]Node) (err error) {
+	n := t
 	r := n.GetRepository()
 	nodeIdList := strings.Split(n.GetPath(), "/")
 	if len(nodeIdList) == 0 {
@@ -66,7 +73,8 @@ func GetAllParent(n Node, withOutSelf bool, out *[]Node) (err error) {
 	return nil
 }
 
-func GetSubTree(n Node, depth int, withOutSelf bool, out *[]Node) (err error) {
+func (t Tree) GetSubTree(depth int, withOutSelf bool, out *[]Node) (err error) {
+	n := t
 	r := n.GetRepository()
 	p := n.GetParent()
 	maxDepth := DEPTH_MAX
@@ -85,10 +93,11 @@ func GetSubTree(n Node, depth int, withOutSelf bool, out *[]Node) (err error) {
 	return nil
 }
 
-func MoveSubTree(node Node, newParentId string) (err error) {
+func (t Tree) MoveSubTree(newParentId string) (err error) {
+	node := t
 	r := node.GetRepository()
 	nodeOldPath := node.GetPath()
-	nodeNewPath, diffDepth := calPathAndDepth(node)
+	nodeNewPath, diffDepth := t.calPathAndDepth()
 	newDepth := diffDepth + node.GetDepth()
 	// 修改node 节点本身
 	node.SetParentID(newParentId)
@@ -117,7 +126,8 @@ func MoveSubTree(node Node, newParentId string) (err error) {
 	return err
 }
 
-func DeleteTree(node Node) (nodeIdList []string, err error) {
+func (t Tree) DeleteTree() (nodeIdList []string, err error) {
+	node := t
 	r := node.GetRepository()
 	// 获取所有子节点
 	var childrenNodeList []Node
@@ -134,7 +144,8 @@ func DeleteTree(node Node) (nodeIdList []string, err error) {
 }
 
 // calPath 计算节点迁移的新路径和深度
-func calPathAndDepth(n Node) (newPath string, diffDepth int) {
+func (t Tree) calPathAndDepth() (newPath string, diffDepth int) {
+	n := t
 	parent := n.GetParent()
 	// if parent == nil {
 	// 	return n.GetPath(), 0
