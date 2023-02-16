@@ -37,7 +37,7 @@ func (t Tree) Add() (err error) {
 
 	n := t
 	parent := n.GetParent()
-	if parent != nil && !parent.IsLeaf() {
+	if parent != nil && parent.IsLeaf() {
 		err = errors.Errorf("%s;nodeId:%s", ERROR_ADD_NODE_LABLE_LEAF, parent.GetNodeID())
 		return err
 	}
