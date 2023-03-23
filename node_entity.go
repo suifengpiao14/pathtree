@@ -15,7 +15,7 @@ const (
 	ERROR_ADD_NODE_EXISTS     = "400:400000003:node id exists"
 )
 
-var DEPTH_MAX = 100000 //最大深度值
+
 // nodeModel 树结构模型(只能在当前包内使用,离开当前包无法使用)
 type nodeEntity struct {
 	NodeID      string `json:"nodeId"`
