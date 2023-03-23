@@ -1,22 +1,37 @@
 package area
 
-import "gitea.programmerfamily.com/go/treeentity"
+import (
+	"gitea.programmerfamily.com/go/treeentity"
+	"github.com/pkg/errors"
+)
 
-type NodeRepository struct {
+type areaRecordRepository struct {
 }
 
-func (r *NodeRepository) AddNode(node treeentity.TreeNode) (err error) {
+func (r *areaRecordRepository) AddNode(node treeentity.TreeNode) (err error) {
+	err = errors.Errorf("Not implemented")
 	return err
 }
-func (r *NodeRepository) UpdateNode(node treeentity.TreeNode) (err error) {
+func (r *areaRecordRepository) UpdateNode(node treeentity.TreeNode) (err error) {
+	err = errors.Errorf("Not implemented")
 	return err
 }
-func (r *NodeRepository) UpdateBatchNode(nodes []treeentity.TreeNode) (err error) {
+func (r *areaRecordRepository) UpdateBatchNode(nodes []treeentity.TreeNode) (err error) {
+	err = errors.Errorf("Not implemented")
 	return err
 }
-func (r *NodeRepository) GetAllByPathPrefix(pathPrefix string, depth int, nodes *[]treeentity.TreeNode) (err error) {
-	return err
+func (r *areaRecordRepository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
+	return nil
 }
-func (r *NodeRepository) GetAllNodeByNodeIds(nodeIds []string, nodes *[]treeentity.TreeNode) (err error) {
-	return err
+func (r *areaRecordRepository) GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error) {
+	return nil
+}
+func (r *areaRecordRepository) GetByAreaID(areaID string) (areaRecord *AreaRecord, err error) {
+	return nil, nil
+}
+func (r *areaRecordRepository) GetByLevel(depth string) (areaRecord AreaRecords, err error) {
+	return nil, nil
+}
+func (r *areaRecordRepository) GetByKeyWord(keyword string, depth string) (areaRecord AreaRecords, err error) {
+	return nil, nil
 }

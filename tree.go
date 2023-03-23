@@ -16,7 +16,7 @@ type TreeRepository interface {
 	UpdateNode(node TreeNode) (err error)
 	UpdateBatchNode(nodes []TreeNode) (err error)
 	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
-	GetAllNodeByNodeIds(nodeIds []string, nodes interface{}) (err error)
+	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
 
 type TreeNode interface {
@@ -128,7 +128,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 		return nil
 	}
 	nodes := make([]TreeNode, 0)
-	err = r.GetAllNodeByNodeIds(nodeIdList, &nodes)
+	err = r.GetAllByNodeIds(nodeIdList, &nodes)
 	if err != nil {
 		return err
 	}

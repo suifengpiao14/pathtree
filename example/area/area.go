@@ -6,7 +6,7 @@ import (
 	"gitea.programmerfamily.com/go/treeentity"
 )
 
-type AreaRecordI interface {
+type AreaRecordRepository interface {
 	treeentity.TreeRepository
 	GetByAreaID(areaID string) (areaRecord *AreaRecord, err error)
 	GetByLevel(depth string) (areaRecord AreaRecords, err error)
@@ -59,6 +59,6 @@ func (node *AreaRecord) GetParent() (parent treeentity.TreeNode, err error) {
 	return parentArea, nil
 }
 
-func (node *AreaRecord) GetRepository() (r AreaRecordI) {
+func (node *AreaRecord) GetRepository() (r AreaRecordRepository) {
 	return r
 }
