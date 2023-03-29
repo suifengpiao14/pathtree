@@ -1,64 +1,76 @@
 package area
 
 import (
+	"fmt"
 	"strconv"
 
 	"gitea.programmerfamily.com/go/treeentity"
+	"github.com/suifengpiao14/gotemplatefunc/templatedb"
+	"github.com/suifengpiao14/logchan/v2"
 )
 
-type AreaRecordRepository interface {
-	treeentity.TreeRepository
-	GetByAreaID(areaID string) (areaRecord *AreaRecord, err error)
-	GetByLevel(depth string) (areaRecord AreaRecords, err error)
-	GetByKeyWord(keyword string, depth string) (areaRecord AreaRecords, err error)
+func init() {
+	logchan.SetLoggerWriter(loggerFn)
+	logchan.SetLoggerWriter(loggerFn)
 }
 
-type AreaRecord struct {
-	AreaID   string `json:"areaId"`
-	AreaName string `json:"areaName"`
-	ParentID string `json:"parentId"`
-	Path     string `json:"path"`
-	Depth    string `json:"depth"`
+func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	switch typeName {
+	case templatedb.LOG_INFO_EXEC_SQL:
+		sqlLog := logInfo.(*templatedb.LogInfoEXECSQL)
+		fmt.Println(sqlLog.SQL)
+	}
+
+}
+
+type AreaRecordRepository interface {
+	treeentity.TreeRepositoryI
+	GetByAreaID(areaID string) (areaRecord *CityInfoModel, err error)
+	GetByLevel(depth int) (areaRecord CityInfoModels, err error)
+	GetByKeyWord(keyword string, depth string) (areaRecord CityInfoModels, err error)
 }
 
 const (
-	LEVEL_CITY = "3"
+	LEVEL_CITY = 3
 )
 
-type AreaRecords []AreaRecord
+type CityInfoModels []CityInfoModel
 
-func (node *AreaRecord) GetNodeID() (nodeID string) {
-	nodeID = node.AreaID
+func (node *CityInfoModel) GetNodeID() (nodeID string) {
+	nodeID = strconv.Itoa(node.AreaID)
 	return nodeID
 }
-func (node *AreaRecord) SetPath(path string) {
-	node.Path = path
+func (node *CityInfoModel) SetPath(path string) {
+	node.CityPath = path
 
 }
-func (node *AreaRecord) GetPath() (path string) {
-	return node.Path
+func (node *CityInfoModel) GetPath() (path string) {
+	return node.CityPath
 }
-func (node *AreaRecord) SetDepth(depth int) {
-	node.Depth = strconv.Itoa(depth)
+func (node *CityInfoModel) SetDepth(depth int) {
+	node.CityLevel = depth
 
 }
-func (node *AreaRecord) GetDepth() (depth int) {
-	depth, _ = strconv.Atoi(node.Depth)
-	return depth
+func (node *CityInfoModel) GetDepth() (depth int) {
+	return node.CityLevel
 }
 
-func (node *AreaRecord) SetParentID(parentId string) {
-	node.ParentID = parentId
+func (node *CityInfoModel) SetParentID(parentId string) {
+	node.ParentID, _ = strconv.Atoi(parentId)
 
 }
-func (node *AreaRecord) GetParent() (parent treeentity.TreeNode, err error) {
-	parentArea, err := node.GetRepository().GetByAreaID(node.ParentID)
+func (node *CityInfoModel) GetParent() (parent treeentity.TreeNodeI, err error) {
+	parentArea, err := node.GetRepository().GetByAreaID(strconv.Itoa(node.ParentID))
 	if err != nil {
 		return nil, err
 	}
 	return parentArea, nil
 }
 
-func (node *AreaRecord) GetRepository() (r AreaRecordRepository) {
+func (node *CityInfoModel) GetRepository() (r AreaRecordRepository) {
 	return r
 }

@@ -259,56 +259,6 @@ func calPath(node nodeEntity, newParent nodeEntity) (newPath string, diffDepth i
 	return newPath, diffDepth
 }
 
-// BatchAddPathAndDepth 给所有数据，增加path和depth字段，方便批量数据导入 纯函数
-func BatchAddPathAndDepth(data []map[string]interface{}, nodeIdKey string, parentIdKey string) (out []map[string]interface{}, err error) {
-	nodeIdParentIdMap := map[string]string{}
-	dataMap := map[string]map[string]interface{}{}
-	for _, record := range data {
-		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
-		parentId := fmt.Sprintf("%v", record[parentIdKey])
-		if _, ok := nodeIdParentIdMap[nodeId]; ok {
-			err := errors.Errorf("dumplicate %s:%s", nodeIdKey, nodeId)
-			return nil, err
-		}
-		nodeIdParentIdMap[nodeId] = parentId
-	}
-	for _, record := range data {
-		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
-		parentId := fmt.Sprintf("%v", record[parentIdKey])
-		revNodeIdList := make([]string, 0)
-		revNodeIdList = append(revNodeIdList, nodeId) // 由下到上收集节点ID
-		for {
-			emptyParentId := parentId == "" || parentId == "0" // int 0 will be "0" after fmt.Sprintf("%v",)
-			if emptyParentId {
-				break
-			}
-			revNodeIdList = append(revNodeIdList, parentId)
-			newParentId, ok := nodeIdParentIdMap[parentId]
-			if !ok {
-				err = errors.Errorf("not found record by %s:%s", nodeIdKey, parentId)
-				return nil, err
-			}
-			parentId = newParentId
-		}
-		var w bytes.Buffer
-		l := len(revNodeIdList)
-		for i := l - 1; i > -1; i-- {
-			w.WriteString("/")
-			w.WriteString(revNodeIdList[i])
-		}
-		path := w.String()
-		depth := strings.Count(path, "/")
-		record["path"] = path
-		record["depth"] = depth
-		dataMap[nodeId] = record
-	}
-	out = make([]map[string]interface{}, 0)
-	for _, record := range dataMap {
-		out = append(out, record)
-	}
-	return out, nil
-}
-
 // BuildTree convert Two-dimensional array to tree
 func BuildTree(records []map[string]interface{}, nodeIdKey string, parentIdKey string) (tree []*map[string]interface{}, err error) {
 	tree = make([]*map[string]interface{}, 0)

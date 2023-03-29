@@ -60,7 +60,7 @@ func TestBatchAddPathAndDepth(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	out, err := treeentity.BatchAddPathAndDepth(record, "code", "parentCode")
+	out, err := treeentity.ResetAllPath1(record, "code", "parentCode")
 	if err != nil {
 		panic(err)
 	}

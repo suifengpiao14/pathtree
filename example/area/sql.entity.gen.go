@@ -1,38 +1,33 @@
 package area
 
-import "github.com/suifengpiao14/gqt/v2"
-
 type AreaSQLGetAllByAreaIDListEntity struct {
-	AreaIDList []int
-	gqt.TplEmptyEntity
+	AreaIDList []string
 }
 
 func (t *AreaSQLGetAllByAreaIDListEntity) TplName() string {
-	return "area.sql.GetAllByAreaIDList"
+	return "GetAllByAreaIDList"
 }
 func (t *AreaSQLGetAllByAreaIDListEntity) TplType() string {
 	return "sql_select"
 }
 
 type AreaSQLGetByAreaIDEntity struct {
-	AreaID int
-	gqt.TplEmptyEntity
+	AreaID string
 }
 
 func (t *AreaSQLGetByAreaIDEntity) TplName() string {
-	return "area.sql.GetByAreaID"
+	return "GetByAreaID"
 }
 func (t *AreaSQLGetByAreaIDEntity) TplType() string {
 	return "sql_select"
 }
 
 type AreaSQLGetByCityLevelEntity struct {
-	CityLevel int
-	gqt.TplEmptyEntity
+	CityLevel string
 }
 
 func (t *AreaSQLGetByCityLevelEntity) TplName() string {
-	return "area.sql.GetByCityLevel"
+	return "GetByCityLevel"
 }
 func (t *AreaSQLGetByCityLevelEntity) TplType() string {
 	return "sql_select"
@@ -40,24 +35,22 @@ func (t *AreaSQLGetByCityLevelEntity) TplType() string {
 
 type AreaSQLGetByCityPathPrefixEntity struct {
 	CityLevel  int
-	PathPrefix interface{}
-	gqt.TplEmptyEntity
+	PathPrefix string
 }
 
 func (t *AreaSQLGetByCityPathPrefixEntity) TplName() string {
-	return "area.sql.GetByCityPathPrefix"
+	return "GetByCityPathPrefix"
 }
 func (t *AreaSQLGetByCityPathPrefixEntity) TplType() string {
 	return "sql_select"
 }
 
 type AreaSQLListByKeywordEntity struct {
-	CityLevel int
-	gqt.TplEmptyEntity
+	AreaName string
 }
 
 func (t *AreaSQLListByKeywordEntity) TplName() string {
-	return "area.sql.ListByKeyword"
+	return "ListByKeyword"
 }
 func (t *AreaSQLListByKeywordEntity) TplType() string {
 	return "sql_select"

@@ -2,9 +2,9 @@ package area
 
 type CityInfoModel struct {
 	// 城市ID
-	AreaID int `json:"areaID" gorm:"column:Farea_id"`
+	AreaID int `json:"areaID,string" gorm:"column:Farea_id"`
 	// 上级城市ID
-	ParentID int `json:"parentID" gorm:"column:Fparent_id"`
+	ParentID int `json:"parentID,string" gorm:"column:Fparent_id"`
 	// 城市名称
 	AreaName string `json:"areaName" gorm:"column:Farea_name"`
 	// 城市全称
@@ -16,17 +16,17 @@ type CityInfoModel struct {
 	// 城市全拼
 	CityQp string `json:"cityQp" gorm:"column:Fcity_qp"`
 	// 城市级别
-	CityLevel int `json:"cityLevel" gorm:"column:Fcity_level"`
+	CityLevel int `json:"cityLevel,string" gorm:"column:Fcity_level"`
 	// 城市路径
 	CityPath string `json:"cityPath" gorm:"column:Fcity_path"`
 	// 城市信息(备注)
 	CityMsg string `json:"cityMsg" gorm:"column:Fcity_msg"`
 	// 创建时间
-	CreateTime int `json:"createTime" gorm:"column:Fcreate_time"`
+	CreateTime string `json:"createTime" gorm:"column:Fcreate_time"`
 	// 更新时间
-	UpdateTime int `json:"updateTime" gorm:"column:Fupdate_time"`
+	UpdateTime string `json:"updateTime" gorm:"column:Fupdate_time"`
 	// 城市状态信息, 1:启用,2:停用,99:删除
-	CityStatus int `json:"cityStatus" gorm:"column:Fcity_status"`
+	CityStatus int `json:"cityStatus,string" gorm:"column:Fcity_status"`
 	// 省会id
 	ProvinceID string `json:"provinceID" gorm:"column:Fprovince_id"`
 	// 城市id
