@@ -33,6 +33,17 @@ func (t *AreaSQLGetByCityLevelEntity) TplType() string {
 	return "sql_select"
 }
 
+type AreaSQLGetAllByPathPrefixEntity struct {
+	PathPrefix string
+}
+
+func (t *AreaSQLGetAllByPathPrefixEntity) TplName() string {
+	return "GetAllByPathPrefix"
+}
+func (t *AreaSQLGetAllByPathPrefixEntity) TplType() string {
+	return "sql_select"
+}
+
 type AreaSQLGetByCityPathPrefixEntity struct {
 	CityLevel  int
 	PathPrefix string

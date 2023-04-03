@@ -19,7 +19,7 @@ var (
 type TreeRepositoryI interface {
 	AddNode(node TreeNodeI) (err error)
 	UpdateNode(node TreeNodeI) (err error)
-	UpdateBatchNode(nodes []TreeNodeI) (err error)
+	UpdateBatchNode(nodes TreeNodeIs) (err error)
 	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
 	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
@@ -34,7 +34,7 @@ func (r *EmptyTreeRpository) UpdateNode(node TreeNodeI) (err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateNode")
 	panic(err)
 }
-func (r *EmptyTreeRpository) UpdateBatchNode(nodes []TreeNodeI) (err error) {
+func (r *EmptyTreeRpository) UpdateBatchNode(nodes TreeNodeIs) (err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateBatchNode")
 	panic(err)
 }
@@ -109,10 +109,24 @@ func (etn *EmptyTreeNode) IncrChildrenCount(causeNode TreeNodeI) {
 
 type TreeNodeIs []TreeNodeI
 
+//ConvertToTreeNodes 具体实例数据转接口数据
+func ConvertToTreeNodes(src interface{}) (treeNodes TreeNodeIs) {
+	srcRv := reflect.Indirect(reflect.ValueOf(src))
+	l := srcRv.Len()
+	treeNodes = make(TreeNodeIs, l)
+	dstRv := reflect.Indirect(reflect.ValueOf(treeNodes))
+	for i := 0; i < l; i++ {
+		rv := srcRv.Index(i)
+		dstRv.Index(i).Set(rv)
+	}
+	return treeNodes
+}
+
 func (tns TreeNodeIs) Convert(dst interface{}) {
 	rv := reflect.Indirect(reflect.ValueOf(dst))
 	copy := rv
-	arr := make([]reflect.Value, 0)
+	c := len(tns)
+	arr := make([]reflect.Value, c)
 	for _, node := range tns {
 		nodeRv := reflect.ValueOf(node)
 		arr = append(arr, nodeRv)
@@ -237,13 +251,13 @@ func (t tree) MoveChildren(newParentId string) (err error) {
 		return err
 	}
 	// 获取所有子节点
-	var childrenNodeList []TreeNodeI
+	var childrenNodeList TreeNodeIs
 	err = r.GetAllByPathPrefix(nodeOldPath, -1, &childrenNodeList)
 	if err != nil {
 		return err
 	}
 	// 更新子节点路径和深度值
-	newChildren := make([]TreeNodeI, 0)
+	newChildren := make(TreeNodeIs, 0)
 	for _, children := range childrenNodeList {
 		newPath := strings.Replace(children.GetPath(), nodeOldPath, nodeNewPath, 1)
 		newDepth := children.GetDepth() + diffDepth
@@ -259,7 +273,7 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 	node := t
 	r := node.repository
 	// 获取所有子节点
-	var childrenNodeList []TreeNodeI
+	var childrenNodeList TreeNodeIs
 	err = r.GetAllByPathPrefix(node.nodeI.GetPath(), -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
@@ -286,7 +300,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	if len(nodeIdList) == 0 {
 		return nil
 	}
-	nodes := make([]TreeNodeI, 0)
+	nodes := make(TreeNodeIs, 0)
 	err = r.GetAllByNodeIds(nodeIdList, &nodes)
 	if err != nil {
 		return err
@@ -295,7 +309,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	if relativeDepth > 0 {
 		minDepth = n.nodeI.GetDepth() - relativeDepth
 	}
-	outNodes := make([]TreeNodeI, 0)
+	outNodes := make(TreeNodeIs, 0)
 	for _, node := range nodes {
 		if node.GetDepth() <= minDepth {
 			continue

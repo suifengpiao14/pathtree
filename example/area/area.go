@@ -1,23 +1,23 @@
 package area
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
 	"gitea.programmerfamily.com/go/pathtree"
+	"github.com/jinzhu/gorm"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/logchan/v2"
 )
 
 func init() {
 	logchan.SetLoggerWriter(loggerFn)
-	logchan.SetLoggerWriter(loggerFn)
 }
 
 func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
 	if err != nil {
-		fmt.Println(err)
-		return
+		fmt.Println(logInfo)
 	}
 	switch typeName {
 	case templatedb.LOG_INFO_EXEC_SQL:
@@ -35,10 +35,10 @@ type AreaRecordRepository interface {
 }
 
 const (
-	LEVEL_CITY = 3
+	LEVEL_CITY int = 3
 )
 
-type CityInfoModels []CityInfoModel
+type CityInfoModels []*CityInfoModel
 
 func (node *CityInfoModel) GetNodeID() (nodeID string) {
 	nodeID = strconv.Itoa(node.AreaID)
@@ -65,6 +65,9 @@ func (node *CityInfoModel) SetParentID(parentId string) {
 }
 func (node *CityInfoModel) GetParent() (parent pathtree.TreeNodeI, err error) {
 	parentArea, err := node.GetRepository().GetByAreaID(strconv.Itoa(node.ParentID))
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		err = nil
+	}
 	if err != nil {
 		return nil, err
 	}

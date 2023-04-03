@@ -78,12 +78,3 @@ func (sts *SimpleTrees) Init() {
 		simpleNode.Childern = make([]*SimpleTree, 0)
 	}
 }
-
-func (sts *SimpleTrees) ConvertToTreeNodes() (treeNodes TreeNodeIs) {
-	sts.Init()
-	treeNodes = make(TreeNodeIs, 0)
-	for _, simpleNode := range *sts {
-		treeNodes = append(treeNodes, simpleNode)
-	}
-	return treeNodes
-}

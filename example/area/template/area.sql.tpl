@@ -10,6 +10,10 @@
     select * from `t_city_info_tmp` where `Fcity_path` like :PathPrefix and `Fcity_level`<=:CityLevel  and `Fcity_status`=1;
 {{end}}
 
+{{define "GetAllByPathPrefix"}}
+    select * from `t_city_info_tmp` where 1=1 {{if .PathPrefix}} `Fcity_path`  like :PathPrefix {{end}}  and `Fcity_status`=1;
+{{end}}
+
 {{define "GetByCityLevel"}}
     select * from `t_city_info_tmp` where `Fcity_level`=:CityLevel and  `Fcity_status`=1;
 {{end}}

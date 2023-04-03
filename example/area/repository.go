@@ -3,6 +3,7 @@ package area
 import (
 	"context"
 	"embed"
+	"fmt"
 	"text/template"
 
 	"gitea.programmerfamily.com/go/pathtree"
@@ -40,6 +41,19 @@ type areaRecordRepository struct {
 }
 
 func (r *areaRecordRepository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
+	if pathPrefix != "" {
+		pathPrefix = fmt.Sprintf("%%%s%%", pathPrefix)
+	}
+	entity := AreaSQLGetAllByPathPrefixEntity{
+		PathPrefix: pathPrefix,
+	}
+	err = gotemplatefunc.ExecSQLTpl(context.Background(), SQL_TPL_IDENTITY, entity.TplName(), &entity, nodes)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (r *areaRecordRepository) GetByCityPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
 	entity := AreaSQLGetByCityPathPrefixEntity{
 		CityLevel:  LEVEL_CITY,
 		PathPrefix: pathPrefix,

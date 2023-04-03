@@ -22,7 +22,7 @@ func getNodes() (treeNodeIs pathtree.TreeNodeIs, err error) {
 		return nil, err
 	}
 	simpleTrees.Init()
-	treeNodes := simpleTrees.ConvertToTreeNodes()
+	treeNodes := pathtree.ConvertToTreeNodes(simpleTrees)
 	return treeNodes, nil
 }
 
