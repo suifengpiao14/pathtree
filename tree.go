@@ -203,20 +203,20 @@ func (tns *treeNodeIs) CountChildren() {
 	}
 }
 
-type tree struct {
+type treeNode struct {
 	nodeI      TreeNodeI
 	repository TreeRepositoryI
 }
 
-func NewTree(nodeI TreeNodeI, repository TreeRepositoryI) (t *tree) {
-	return &tree{
+func NewTreeNode(nodeI TreeNodeI, repository TreeRepositoryI) (t *treeNode) {
+	return &treeNode{
 		nodeI:      nodeI,
 		repository: repository,
 	}
 }
 
 // AddNode 节点
-func (t tree) AddNode() (err error) {
+func (t treeNode) AddNode() (err error) {
 
 	n := t
 	path := fmt.Sprintf("/%s", n.nodeI.GetNodeID())
@@ -233,7 +233,7 @@ func (t tree) AddNode() (err error) {
 	return err
 }
 
-func (t tree) MoveChildren(newParentId string) (err error) {
+func (t treeNode) MoveChildren(newParentId string) (err error) {
 	node := t
 	r := node.repository
 	nodeOldPath := node.nodeI.GetPath()
@@ -269,7 +269,7 @@ func (t tree) MoveChildren(newParentId string) (err error) {
 	return err
 }
 
-func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
+func (t treeNode) DeleteWithChildren() (nodeIdList []string, err error) {
 	node := t
 	r := node.repository
 	// 获取所有子节点
@@ -287,7 +287,7 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 }
 
 // GetParents 获取节点的所有父节点
-func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
+func (t treeNode) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t
 	r := n.repository
 	nodeIdList := strings.Split(n.nodeI.GetPath(), "/")
@@ -325,7 +325,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	return nil
 }
 
-func (t tree) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
+func (t treeNode) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t.nodeI
 	r := t.repository
 	maxDepth := DEPTH_MAX
@@ -345,7 +345,7 @@ func (t tree) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) 
 }
 
 // calPath 计算节点迁移的新路径和深度
-func (t tree) calPathAndDepth() (newPath string, diffDepth int, err error) {
+func (t treeNode) calPathAndDepth() (newPath string, diffDepth int, err error) {
 	n := t
 	parent, err := n.nodeI.GetParent()
 	if err != nil {

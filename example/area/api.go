@@ -6,7 +6,7 @@ import (
 
 func GetAll(parentID string) (nodes CityInfoModels, err error) {
 	areaRecord := &CityInfoModel{}
-	areaTree := pathtree.NewTree(areaRecord, areaRecord.GetRepository())
+	areaTree := pathtree.NewTreeNode(areaRecord, areaRecord.GetRepository())
 	nodes = make(CityInfoModels, 0)
 	depth := -1
 	//传值: 0 表示省份和直瞎市, 传父ID区取当前子级; 不传则获所有,同时返回children
@@ -41,7 +41,7 @@ func GetParentArea(areaId string) (out *GetParentAreaOut, err error) {
 	if err != nil {
 		return nil, err
 	}
-	areaTree := pathtree.NewTree(areaRecord, areaRecord.GetRepository())
+	areaTree := pathtree.NewTreeNode(areaRecord, areaRecord.GetRepository())
 	parents := make(CityInfoModels, 0)
 	err = areaTree.GetParents(pathtree.DEPTH_MIN, true, &parents)
 	if err != nil {
@@ -69,7 +69,7 @@ func GetCityListByKeyword(keyword string) (out interface{}, err error) {
 func GetCountiesByCityId(cityId string) (nodes CityInfoModels, err error) {
 	nodes = make(CityInfoModels, 0)
 	areaRecord := &CityInfoModel{}
-	areaTree := pathtree.NewTree(areaRecord, areaRecord.GetRepository())
+	areaTree := pathtree.NewTreeNode(areaRecord, areaRecord.GetRepository())
 	err = areaTree.GetChildren(1, false, &nodes)
 	return nodes, nil
 }

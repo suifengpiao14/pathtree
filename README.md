@@ -3,7 +3,7 @@
 基于关系型数据结构存储树状模型的设计主要有邻接列表模式、物化路径、左右值编码、闭包表等几种方案，本模型选用最通用的邻接列表模式、物化路径相结合。
 设计方案通用，抽象后节点接口为TreeNodeI,仓储接口为TreeRepositoryI
 ## 功能列表
-1. 包内结构体tree 主要提供路径(path)和深度(depth)计算,以及和这2个值强相关的常见操作:增加节点、删除节点、移动节点、获取父节点、获取子节点
+1. 包内结构体treeNode 主要提供路径(path)和深度(depth)计算,以及和这2个值强相关的常见操作:增加节点、删除节点、移动节点、获取父节点、获取子节点
 2. 包内结构体treeNodeIs 提供节点集合操作,主要包括:实现了接口TreeNodeI集合转treeNodeIs结构体、treeNodeIs结构体转目标结构体、重新计算所有的路径(path)和深度(depth)、二维数组转树结构、计算子节点数量等
 ## 辅助工具列表
 1. EmptyTreeNode、EmptyTreeRpository 是TreeNodeI,TreeRepositoryI 的空实现,建议其它实现继承它,主要减少其它实现非必要接口,以及方便后续TreeNodeI,TreeRepositoryI扩展方法
@@ -31,6 +31,6 @@ https://www.cnblogs.com/goloving/p/13570067.html
 
 ## 使用
 1. 外部实现 TreeNodeI 接口,需要存储情况实现TreeRepositoryI
-2. 调用包方法ConvertToTreeNodes、NewTree 转换成当前包内对象
+2. 调用包方法ConvertToTreeNodes、NewTreeNode 转换成当前包内对象
 3. 调用相应方法完成功能或者数据整理
 4. 使用treeNodeIs相关功能后,调用treeNodeIs.Convert转换为目标结构体
