@@ -1,23 +1,14 @@
 # 树形结构模型
 树形结构在实际编程中应用广泛，如 省市区、组织架构、代理关系、目录结构、分类、分组等。
-基于关系型数据结构存储树状模型的设计主要有邻接列表模式、物化路径、左右值编码、闭包表等几种方案，其中通用的是邻接列表模式、物化路径。
-设计方案比较明确和通用，每个设计方案对应的表结构设计固定，对表操作也是比较通用的，针对这部分的操作逻辑也是比较固定的，所以本模型基于邻接列表模式和物化路径的结合，实现通用操作，减少重复开发工作，另外尽可能做到完备，不断迭代优化模型，提升模型的实用性
-为了方便和其它项目结合,保持模块的通用性、可扩展性、最小约束外部系统特性，本模型仅提供树模型的常规操作行为逻辑的实现，不涉及数据的存储
+基于关系型数据结构存储树状模型的设计主要有邻接列表模式、物化路径、左右值编码、闭包表等几种方案，本模型选用最通用的邻接列表模式、物化路径相结合。
+设计方案通用，抽象后节点接口为TreeNodeI,仓储接口为TreeRepositoryI
 ## 功能列表
-1. 新增节点，新增行为通过传入nodeId和parentId，返回 节点的path和depth 数据，使用方决定如何持久化数据
-2. 根据节点ID获取节点(该接口为非重要接口，由于对外依赖的repository interface中已经要求实现获取节点，所以顺便封装提供)
-3. 获取所有父节点(可以包含自己)。根据传入的nodeId，依赖repository interface 获取节点的path,得到所有父节点的nodeId，再批量查询父节点
-4. 获取指定深度的子树。根据传入的nodeId,调用RepositoryInterface.GetNode获取节点的path,构造sql path 字段前缀pathPrefix，调用RepositoryInterface.GetAllByPathPrefix 获取数据
-5. 移动节点。根据入参nodeId、newParentId找到当前节点和所有子节点以及新的父节点，计算修改当前节点的parentId字段，重新设置当前节点和子节点的path并重新计算depth,返回当前节点和字节点的path和depth(当前节点的parentId)供调用方持久化数据
-6. 删除节点。根据传入的nodeId 找到所有子节点，返回需要删除的节点ID列表，供调用方持久化数据
+1. 包内结构体tree 主要提供路径(path)和深度(depth)计算,以及和这2个值强相关的常见操作:增加节点、删除节点、移动节点、获取父节点、获取子节点
+2. 包内结构体treeNodeIs 提供节点集合操作,主要包括:实现了接口TreeNodeI集合转treeNodeIs结构体、treeNodeIs结构体转目标结构体、重新计算所有的路径(path)和深度(depth)、二维数组转树结构、计算子节点数量等
 ## 辅助工具列表
-1. 二维行列数据（数据库格式）转树状模型
-2. 根据全量数据的节点ID、父节点ID 给全量数据增加path、depth 属性（批量导入数据时有用）
-3. 统计树的各个节点子节点数目
-
-## 对外约束和依赖
-使用此库，必须实现接口 RepositoryInterface 为了提升通用新，模型对于写入数据，只提供计算的数据值，不约束外部如何存储。因此RepositoryInterface 只约束必要的获取数据接口.(只约束在计算数据时必须获取数据接口)
-
+1. EmptyTreeNode、EmptyTreeRpository 是TreeNodeI,TreeRepositoryI 的空实现,建议其它实现继承它,主要减少其它实现非必要接口,以及方便后续TreeNodeI,TreeRepositoryI扩展方法
+2. SimpleTree 是一个简单的TreeNodeI 实现,主要用于案例、内存数据方式操作以及自我测试使用
+xgbx
 ## 扩展
 分层聚合其实也类似于树状结构，设计中将融合分层聚合的模型，以电商的商品分类为例，某个商品按商品管理分类，属于手机，按活动分类可以属于热门商品，基于这种多维度分类，模型提供树交叉功能
 ## 参考资料
@@ -39,5 +30,7 @@ https://www.cnblogs.com/goloving/p/13570067.html
 
 
 ## 使用
-1. 外部实现 RepositoryInterface 接口
-2. 调用 NewNodeEntity 生成实体，调用对应方法即可
+1. 外部实现 TreeNodeI 接口,需要存储情况实现TreeRepositoryI
+2. 调用包方法ConvertToTreeNodes、NewTree 转换成当前包内对象
+3. 调用相应方法完成功能或者数据整理
+4. 使用treeNodeIs相关功能后,调用treeNodeIs.Convert转换为目标结构体

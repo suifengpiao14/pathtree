@@ -19,7 +19,7 @@ var (
 type TreeRepositoryI interface {
 	AddNode(node TreeNodeI) (err error)
 	UpdateNode(node TreeNodeI) (err error)
-	UpdateBatchNode(nodes TreeNodeIs) (err error)
+	UpdateBatchNode(nodes []TreeNodeI) (err error)
 	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
 	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
@@ -34,7 +34,7 @@ func (r *EmptyTreeRpository) UpdateNode(node TreeNodeI) (err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateNode")
 	panic(err)
 }
-func (r *EmptyTreeRpository) UpdateBatchNode(nodes TreeNodeIs) (err error) {
+func (r *EmptyTreeRpository) UpdateBatchNode(nodes []TreeNodeI) (err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateBatchNode")
 	panic(err)
 }
@@ -60,7 +60,7 @@ type TreeNodeI interface {
 	IncrChildrenCount(causeNode TreeNodeI)
 }
 
-//EmptyTreeNode 主要用于屏蔽不需要实现的接口，以及对已有的实现屏蔽新增方法，建议TreeNodeI 的实现继承EmptyTreeNode
+// EmptyTreeNode 主要用于屏蔽不需要实现的接口，以及对已有的实现屏蔽新增方法，建议TreeNodeI 的实现继承EmptyTreeNode
 type EmptyTreeNode struct {
 }
 
@@ -107,13 +107,13 @@ func (etn *EmptyTreeNode) IncrChildrenCount(causeNode TreeNodeI) {
 	panic(err)
 }
 
-type TreeNodeIs []TreeNodeI
+type treeNodeIs []TreeNodeI
 
-//ConvertToTreeNodes 具体实例数据转接口数据
-func ConvertToTreeNodes(src interface{}) (treeNodes TreeNodeIs) {
+// ConvertToTreeNodes 具体实例数据转接口数据
+func ConvertToTreeNodes(src interface{}) (treeNodes treeNodeIs) {
 	srcRv := reflect.Indirect(reflect.ValueOf(src))
 	l := srcRv.Len()
-	treeNodes = make(TreeNodeIs, l)
+	treeNodes = make(treeNodeIs, l)
 	dstRv := reflect.Indirect(reflect.ValueOf(treeNodes))
 	for i := 0; i < l; i++ {
 		rv := srcRv.Index(i)
@@ -122,7 +122,7 @@ func ConvertToTreeNodes(src interface{}) (treeNodes TreeNodeIs) {
 	return treeNodes
 }
 
-func (tns TreeNodeIs) Convert(dst interface{}) {
+func (tns treeNodeIs) Convert(dst interface{}) {
 	rv := reflect.Indirect(reflect.ValueOf(dst))
 	copy := rv
 	c := len(tns)
@@ -135,7 +135,7 @@ func (tns TreeNodeIs) Convert(dst interface{}) {
 	rv.Set(copy)
 }
 
-func (tns TreeNodeIs) ResetAllPath() (err error) {
+func (tns treeNodeIs) ResetAllPath() (err error) {
 	count := len(tns)
 	// 循环处理数据,增加path和depth
 	for i := 0; i < count; i++ {
@@ -179,8 +179,8 @@ func (tns TreeNodeIs) ResetAllPath() (err error) {
 	}
 	return nil
 }
-func (tns *TreeNodeIs) FormatToTree() (trees TreeNodeIs) {
-	trees = make(TreeNodeIs, 0)
+func (tns *treeNodeIs) FormatToTree() (trees treeNodeIs) {
+	trees = make(treeNodeIs, 0)
 	for _, node := range *tns {
 		if node.IsRoot() {
 			trees = append(trees, node)
@@ -194,7 +194,7 @@ func (tns *TreeNodeIs) FormatToTree() (trees TreeNodeIs) {
 	return trees
 }
 
-func (tns *TreeNodeIs) CountChildren() {
+func (tns *treeNodeIs) CountChildren() {
 	for _, node := range *tns {
 		parent, _ := node.GetParent()
 		if parent != nil {
@@ -251,13 +251,13 @@ func (t tree) MoveChildren(newParentId string) (err error) {
 		return err
 	}
 	// 获取所有子节点
-	var childrenNodeList TreeNodeIs
+	var childrenNodeList treeNodeIs
 	err = r.GetAllByPathPrefix(nodeOldPath, -1, &childrenNodeList)
 	if err != nil {
 		return err
 	}
 	// 更新子节点路径和深度值
-	newChildren := make(TreeNodeIs, 0)
+	newChildren := make(treeNodeIs, 0)
 	for _, children := range childrenNodeList {
 		newPath := strings.Replace(children.GetPath(), nodeOldPath, nodeNewPath, 1)
 		newDepth := children.GetDepth() + diffDepth
@@ -273,7 +273,7 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 	node := t
 	r := node.repository
 	// 获取所有子节点
-	var childrenNodeList TreeNodeIs
+	var childrenNodeList treeNodeIs
 	err = r.GetAllByPathPrefix(node.nodeI.GetPath(), -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
@@ -300,7 +300,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	if len(nodeIdList) == 0 {
 		return nil
 	}
-	nodes := make(TreeNodeIs, 0)
+	nodes := make(treeNodeIs, 0)
 	err = r.GetAllByNodeIds(nodeIdList, &nodes)
 	if err != nil {
 		return err
@@ -309,7 +309,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	if relativeDepth > 0 {
 		minDepth = n.nodeI.GetDepth() - relativeDepth
 	}
-	outNodes := make(TreeNodeIs, 0)
+	outNodes := make(treeNodeIs, 0)
 	for _, node := range nodes {
 		if node.GetDepth() <= minDepth {
 			continue

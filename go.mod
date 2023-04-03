@@ -41,4 +41,4 @@ require (
 	gorm.io/gorm v1.24.6 // indirect
 )
 
-replace github.com/suifengpiao14/gotemplatefunc => D:\\go\\gotemplatefunc
+//replace github.com/suifengpiao14/gotemplatefunc => D:\\go\\gotemplatefunc
