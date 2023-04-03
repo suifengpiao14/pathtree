@@ -17,7 +17,6 @@ func (st *SimpleTree) GetNodeID() (nodeID string) {
 }
 func (st *SimpleTree) SetPath(path string) {
 	st.Path = path
-	return
 }
 func (st *SimpleTree) SetDepth(depth int) {
 	st.Depth = depth
@@ -55,7 +54,6 @@ func (st *SimpleTree) AddChildren(node TreeNodeI) {
 	}
 	simpleTree := node.(*SimpleTree)
 	st.Childern = append(st.Childern, simpleTree)
-	return
 }
 func (st *SimpleTree) IncrChildrenCount(causeNode TreeNodeI) {
 	causeSimpleTree := causeNode.(*SimpleTree)
@@ -67,7 +65,6 @@ func (st *SimpleTree) IncrChildrenCount(causeNode TreeNodeI) {
 	if parent != nil { // 实现统计所有子节点
 		parent.IncrChildrenCount(causeNode)
 	}
-	return
 }
 
 type SimpleTrees []*SimpleTree
