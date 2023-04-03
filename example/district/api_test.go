@@ -6,7 +6,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	record := DistrictKV{
+	record := District{
 		Title:      "县",
 		Code:       "1004",
 		ParentCode: "1003",

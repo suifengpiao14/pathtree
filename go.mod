@@ -1,4 +1,4 @@
-module gitea.programmerfamily.com/go/treeentity
+module gitea.programmerfamily.com/go/pathtree
 
 go 1.17
 

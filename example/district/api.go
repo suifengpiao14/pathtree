@@ -1,35 +1,24 @@
 package district
 
 import (
-	"encoding/json"
-
-	"gitea.programmerfamily.com/go/treeentity"
-	"gitea.programmerfamily.com/go/treeentity/example/district/repository"
+	"gitea.programmerfamily.com/go/pathtree"
 )
 
-func Add(record DistrictKV) (err error) {
-	r := repository.NewDoaRepository()
-	nodeEntity := treeentity.NewNodeEntity(r)
-	addData, err := nodeEntity.AddNode(record.Code, record.ParentCode, record.Label)
-	if err != nil {
-		return err
-	}
-	record.Depth = addData.Depth
-	record.Path = addData.Path
-	b, err := json.Marshal(record)
-	if err != nil {
-		return err
-	}
-	err = r.AddNode(b)
+func Add(record District) (err error) {
+	r := record.GetRepository()
+	nodeEntity := pathtree.NewTree(&record, r)
+	err = nodeEntity.AddNode()
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func GetByCodeWithChildren(code string) (out []*DistrictKV, err error) {
-	r := repository.NewDoaRepository()
-	nodeEntity := treeentity.NewNodeEntity(r)
-	err = nodeEntity.GetSubTree(code, -1, true, &out)
+func GetByCodeWithChildren(code string) (out []*District, err error) {
+	record := District{
+		Code: code,
+	}
+	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	err = nodeEntity.GetChildren(-1, true, &out)
 	if err != nil {
 		return nil, err
 	}
@@ -37,10 +26,12 @@ func GetByCodeWithChildren(code string) (out []*DistrictKV, err error) {
 	return out, nil
 }
 
-func GetParent(code string) (out []*DistrictKV, err error) {
-	r := repository.NewDoaRepository()
-	nodeEntity := treeentity.NewNodeEntity(r)
-	err = nodeEntity.GetAllParent(code, false, &out)
+func GetParent(code string) (out []*District, err error) {
+	record := District{
+		Code: code,
+	}
+	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	err = nodeEntity.GetParents(-1, false, &out)
 	if err != nil {
 		return out, err
 	}
@@ -48,17 +39,11 @@ func GetParent(code string) (out []*DistrictKV, err error) {
 }
 
 func MoveNode(code string, newParentCode string) (err error) {
-	r := repository.NewDoaRepository()
-	nodeEntity := treeentity.NewNodeEntity(r)
-	moveData, err := nodeEntity.MoveSubTree(code, newParentCode)
-	if err != nil {
-		return err
+	record := District{
+		Code: code,
 	}
-	b, err := json.Marshal(moveData)
-	if err != nil {
-		return err
-	}
-	err = r.BatchUpdatePath(b)
+	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	err = nodeEntity.MoveChildren(newParentCode)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,6 @@
 package area
 
-import "gitea.programmerfamily.com/go/treeentity"
+import treeentity "gitea.programmerfamily.com/go/pathtree"
 
 func GetAll(parentID string) (nodes CityInfoModels, err error) {
 	areaRecord := &CityInfoModel{}

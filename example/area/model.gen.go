@@ -1,5 +1,7 @@
 package area
 
+import treeentity "gitea.programmerfamily.com/go/pathtree"
+
 type CityInfoModel struct {
 	// 城市ID
 	AreaID int `json:"areaID,string" gorm:"column:Farea_id"`
@@ -35,6 +37,7 @@ type CityInfoModel struct {
 	CountyID string `json:"countyID" gorm:"column:Fcounty_id"`
 	// 变更时间
 	AutoUpdateTime string `json:"autoUpdateTime" gorm:"column:Fauto_update_time"`
+	treeentity.EmptyTreeNode
 }
 
 func (t *CityInfoModel) TableName() string {

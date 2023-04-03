@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitea.programmerfamily.com/go/pathtree"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	templatemaputil "github.com/suifengpiao14/templatemap/util"
@@ -15,7 +16,9 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-type doaRepository struct{}
+type doaRepository struct {
+	pathtree.EmptyTreeRpository
+}
 
 func NewDoaRepository() (rep *doaRepository) {
 	return &doaRepository{}
@@ -34,11 +37,15 @@ type DistrictInsertInput struct {
 
 var DoaHost = "http://doa.programmerfamily.com"
 
-func (r *doaRepository) AddNode(data []byte) (err error) {
+func (r *doaRepository) AddNode(node pathtree.TreeNodeI) (err error) {
 	input := DistrictInsertInput{
 		IsDeprecated: "0",
 	}
-	err = json.Unmarshal(data, &input)
+	b, err := json.Marshal(node)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &input)
 	if err != nil {
 		return err
 	}

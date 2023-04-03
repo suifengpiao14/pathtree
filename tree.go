@@ -1,4 +1,4 @@
-package treeentity
+package pathtree
 
 import (
 	"bytes"
@@ -12,6 +12,10 @@ import (
 var DEPTH_MIN = -1     //最小深度值
 var DEPTH_MAX = 100000 //最大深度值
 
+var (
+	ERROR_NODE_NOT_FOUND = errors.Errorf("node not found")
+)
+
 type TreeRepositoryI interface {
 	AddNode(node TreeNodeI) (err error)
 	UpdateNode(node TreeNodeI) (err error)
@@ -20,34 +24,179 @@ type TreeRepositoryI interface {
 	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
 
-type BaseTreeNodeI interface {
+type EmptyTreeRpository struct{}
+
+func (r *EmptyTreeRpository) AddNode(node TreeNodeI) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "AddNode")
+	panic(err)
+}
+func (r *EmptyTreeRpository) UpdateNode(node TreeNodeI) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateNode")
+	panic(err)
+}
+func (r *EmptyTreeRpository) UpdateBatchNode(nodes []TreeNodeI) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateBatchNode")
+	panic(err)
+}
+func (r *EmptyTreeRpository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByPathPrefix")
+	panic(err)
+}
+func (r *EmptyTreeRpository) GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByNodeIds")
+	panic(err)
+}
+
+type TreeNodeI interface {
 	GetNodeID() (nodeID string)
 	SetPath(path string)
 	SetDepth(depth int)
 	GetParent() (parent TreeNodeI, err error)
-}
-
-type TreeNodeI interface {
-	BaseTreeNodeI
 	GetPath() (path string)
 	GetDepth() (depth int)
 	SetParentID(parentId string)
+	IsRoot() (ok bool)
+	AddChildren(node TreeNodeI)
+	IncrChildrenCount(causeNode TreeNodeI)
 }
-type TreeNodes []TreeNodeI
 
-type TreeNodesI interface {
-	Len() (len int)
-	GetByIndex(i int) (node BaseTreeNodeI)
+//EmptyTreeNode 主要用于屏蔽不需要实现的接口，以及对已有的实现屏蔽新增方法，建议TreeNodeI 的实现继承EmptyTreeNode
+type EmptyTreeNode struct {
+}
+
+var ERROR_NOT_IMPLEMENTED = errors.New("not implemented")
+
+func (etn *EmptyTreeNode) GetNodeID() (nodeID string) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetNodeID")
+	panic(err)
+}
+func (etn *EmptyTreeNode) SetPath(path string) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "SetPath")
+	panic(err)
+}
+func (etn *EmptyTreeNode) SetDepth(depth int) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "SetDepth")
+	panic(err)
+}
+func (etn *EmptyTreeNode) GetParent() (parent TreeNodeI, err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetParent")
+	panic(err)
+}
+func (etn *EmptyTreeNode) GetPath() (path string) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetPath")
+	panic(err)
+}
+func (etn *EmptyTreeNode) GetDepth() (depth int) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetDepth")
+	panic(err)
+}
+func (etn *EmptyTreeNode) SetParentID(parentId string) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "SetParentID")
+	panic(err)
+}
+func (etn *EmptyTreeNode) IsRoot() (ok bool) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "IsRoot")
+	panic(err)
+}
+func (etn *EmptyTreeNode) AddChildren(node TreeNodeI) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "AddChildren")
+	panic(err)
+}
+func (etn *EmptyTreeNode) IncrChildrenCount(causeNode TreeNodeI) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "IncrChildrenCount")
+	panic(err)
+}
+
+type TreeNodeIs []TreeNodeI
+
+func (tns TreeNodeIs) Convert(dst interface{}) {
+	rv := reflect.Indirect(reflect.ValueOf(dst))
+	copy := rv
+	arr := make([]reflect.Value, 0)
+	for _, node := range tns {
+		nodeRv := reflect.ValueOf(node)
+		arr = append(arr, nodeRv)
+	}
+	copy = reflect.Append(copy, arr...) // 此处重新赋值，丢失引用,所以用copy
+	rv.Set(copy)
+}
+
+func (tns TreeNodeIs) ResetAllPath() (err error) {
+	count := len(tns)
+	// 循环处理数据,增加path和depth
+	for i := 0; i < count; i++ {
+		node := tns[i]
+		revNodeIdList := make([]string, 0)
+		parent := node
+		for {
+			parentId := ""
+			isRoot := true
+			if parent != nil {
+				parentId = parent.GetNodeID()
+				isRoot = parent.IsRoot()
+			}
+			revNodeIdList = append(revNodeIdList, parentId)
+			if isRoot {
+				break
+			}
+
+			parent, err = parent.GetParent()
+			if errors.Is(err, ERROR_NODE_NOT_FOUND) {
+				err = nil
+			}
+			if err != nil {
+				return err
+			}
+		}
+		var w bytes.Buffer
+		l := len(revNodeIdList)
+		for i := l - 1; i > -1; i-- {
+			nodeId := revNodeIdList[i]
+			if nodeId == "" {
+				continue
+			}
+			w.WriteString("/")
+			w.WriteString(nodeId)
+		}
+		path := w.String()
+		depth := strings.Count(path, "/")
+		node.SetDepth(depth)
+		node.SetPath(path)
+	}
+	return nil
+}
+func (tns *TreeNodeIs) FormatToTree() (trees TreeNodeIs) {
+	trees = make(TreeNodeIs, 0)
+	for _, node := range *tns {
+		if node.IsRoot() {
+			trees = append(trees, node)
+			continue
+		}
+		parent, _ := node.GetParent()
+		if parent != nil {
+			parent.AddChildren(node)
+		}
+	}
+	return trees
+}
+
+func (tns *TreeNodeIs) CountChildren() {
+	for _, node := range *tns {
+		parent, _ := node.GetParent()
+		if parent != nil {
+			parent.IncrChildrenCount(node)
+		}
+	}
 }
 
 type tree struct {
-	node       TreeNodeI
+	nodeI      TreeNodeI
 	repository TreeRepositoryI
 }
 
-func NewTree(node TreeNodeI, repository TreeRepositoryI) (t *tree) {
+func NewTree(nodeI TreeNodeI, repository TreeRepositoryI) (t *tree) {
 	return &tree{
-		node:       node,
+		nodeI:      nodeI,
 		repository: repository,
 	}
 }
@@ -56,34 +205,34 @@ func NewTree(node TreeNodeI, repository TreeRepositoryI) (t *tree) {
 func (t tree) AddNode() (err error) {
 
 	n := t
-	path := fmt.Sprintf("/%s", n.node.GetNodeID())
-	n.node.SetPath(path)
+	path := fmt.Sprintf("/%s", n.nodeI.GetNodeID())
+	n.nodeI.SetPath(path)
 	var diffDepth int
 	path, diffDepth, err = t.calPathAndDepth()
 	if err != nil {
 		return err
 	}
-	depth := diffDepth + n.node.GetDepth()
-	n.node.SetPath(path)
-	n.node.SetDepth(depth)
-	err = n.repository.AddNode(n.node)
+	depth := diffDepth + n.nodeI.GetDepth()
+	n.nodeI.SetPath(path)
+	n.nodeI.SetDepth(depth)
+	err = n.repository.AddNode(n.nodeI)
 	return err
 }
 
 func (t tree) MoveChildren(newParentId string) (err error) {
 	node := t
 	r := node.repository
-	nodeOldPath := node.node.GetPath()
+	nodeOldPath := node.nodeI.GetPath()
 	nodeNewPath, diffDepth, err := t.calPathAndDepth()
 	if err != nil {
 		return err
 	}
-	newDepth := diffDepth + node.node.GetDepth()
+	newDepth := diffDepth + node.nodeI.GetDepth()
 	// 修改node 节点本身
-	node.node.SetParentID(newParentId)
-	node.node.SetPath(nodeNewPath)
-	node.node.SetDepth(newDepth)
-	err = r.UpdateNode(node.node)
+	node.nodeI.SetParentID(newParentId)
+	node.nodeI.SetPath(nodeNewPath)
+	node.nodeI.SetDepth(newDepth)
+	err = r.UpdateNode(node.nodeI)
 	if err != nil {
 		return err
 	}
@@ -111,7 +260,7 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 	r := node.repository
 	// 获取所有子节点
 	var childrenNodeList []TreeNodeI
-	err = r.GetAllByPathPrefix(node.node.GetPath(), -1, &childrenNodeList)
+	err = r.GetAllByPathPrefix(node.nodeI.GetPath(), -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +276,7 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t
 	r := n.repository
-	nodeIdList := strings.Split(n.node.GetPath(), "/")
+	nodeIdList := strings.Split(n.nodeI.GetPath(), "/")
 	if len(nodeIdList) == 0 {
 		return nil
 	}
@@ -144,7 +293,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 	}
 	minDepth := DEPTH_MIN
 	if relativeDepth > 0 {
-		minDepth = n.node.GetDepth() - relativeDepth
+		minDepth = n.nodeI.GetDepth() - relativeDepth
 	}
 	outNodes := make([]TreeNodeI, 0)
 	for _, node := range nodes {
@@ -163,7 +312,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 }
 
 func (t tree) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
-	n := t.node
+	n := t.nodeI
 	r := t.repository
 	maxDepth := DEPTH_MAX
 	if relativeDepth > 0 {
@@ -184,116 +333,11 @@ func (t tree) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) 
 // calPath 计算节点迁移的新路径和深度
 func (t tree) calPathAndDepth() (newPath string, diffDepth int, err error) {
 	n := t
-	parent, err := n.node.GetParent()
+	parent, err := n.nodeI.GetParent()
 	if err != nil {
 		return newPath, diffDepth, err
 	}
-	newPath = fmt.Sprintf("%s%s", parent.GetPath(), n.node.GetPath())
-	diffDepth = parent.GetDepth() - n.node.GetDepth() + 1
+	newPath = fmt.Sprintf("%s%s", parent.GetPath(), n.nodeI.GetPath())
+	diffDepth = parent.GetDepth() - n.nodeI.GetDepth() + 1
 	return newPath, diffDepth, nil
-}
-
-func ResetAllPath(nodes TreeNodesI) (err error) {
-	count := nodes.Len()
-	nodeIdParentIdMap := map[string]string{}
-	for i := 0; i < count; i++ {
-		node := nodes.GetByIndex(i)
-		nodeId := node.GetNodeID()
-		parent, err := node.GetParent()
-		if err != nil {
-			return err
-		}
-		parentId := parent.GetNodeID()
-		if _, ok := nodeIdParentIdMap[nodeId]; ok {
-			err := errors.Errorf("dumplicate nodeId:%s", nodeId)
-			return err
-		}
-		nodeIdParentIdMap[nodeId] = parentId
-	}
-	// 循环处理数据,增加path和depth
-	for i := 0; i < count; i++ {
-		node := nodes.GetByIndex(i)
-		parent, err := node.GetParent()
-		if err != nil {
-			return err
-		}
-		nodeId := node.GetNodeID()
-		parentId := parent.GetNodeID()
-		revNodeIdList := make([]string, 0)
-		revNodeIdList = append(revNodeIdList, nodeId) // 由下到上收集节点ID
-		for {
-			emptyParentId := parentId == "" || parentId == "0" // int 0 will be "0" after fmt.Sprintf("%v",)
-			if emptyParentId {
-				break
-			}
-			revNodeIdList = append(revNodeIdList, parentId)
-			newParentId, ok := nodeIdParentIdMap[parentId]
-			if !ok {
-				err = errors.Errorf("not found record by parentId:%s", parentId)
-				return err
-			}
-			parentId = newParentId
-		}
-		var w bytes.Buffer
-		l := len(revNodeIdList)
-		for i := l - 1; i > -1; i-- {
-			w.WriteString("/")
-			w.WriteString(revNodeIdList[i])
-		}
-		path := w.String()
-		depth := strings.Count(path, "/")
-		node.SetDepth(depth)
-		node.SetPath(path)
-	}
-	return nil
-}
-
-// ResetAllPath1 给所有数据，重置path和depth字段，方便批量数据导入 纯函数
-func ResetAllPath1(data []map[string]interface{}, nodeIdKey string, parentIdKey string) (out []map[string]interface{}, err error) {
-	nodeIdParentIdMap := map[string]string{}
-	dataMap := map[string]map[string]interface{}{}
-	for _, record := range data {
-		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
-		parentId := fmt.Sprintf("%v", record[parentIdKey])
-		if _, ok := nodeIdParentIdMap[nodeId]; ok {
-			err := errors.Errorf("dumplicate %s:%s", nodeIdKey, nodeId)
-			return nil, err
-		}
-		nodeIdParentIdMap[nodeId] = parentId
-	}
-	for _, record := range data {
-		nodeId := fmt.Sprintf("%v", record[nodeIdKey])
-		parentId := fmt.Sprintf("%v", record[parentIdKey])
-		revNodeIdList := make([]string, 0)
-		revNodeIdList = append(revNodeIdList, nodeId) // 由下到上收集节点ID
-		for {
-			emptyParentId := parentId == "" || parentId == "0" // int 0 will be "0" after fmt.Sprintf("%v",)
-			if emptyParentId {
-				break
-			}
-			revNodeIdList = append(revNodeIdList, parentId)
-			newParentId, ok := nodeIdParentIdMap[parentId]
-			if !ok {
-				err = errors.Errorf("not found record by %s:%s", nodeIdKey, parentId)
-				return nil, err
-			}
-			parentId = newParentId
-		}
-		var w bytes.Buffer
-		l := len(revNodeIdList)
-		for i := l - 1; i > -1; i-- {
-			w.WriteString("/")
-			w.WriteString(revNodeIdList[i])
-		}
-		path := w.String()
-		depth := strings.Count(path, "/")
-		record["path"] = path
-		record["depth"] = depth
-		dataMap[nodeId] = record
-	}
-	out = make([]map[string]interface{}, 0)
-	for _, record := range dataMap {
-		out = append(out, record)
-	}
-	return out, nil
 }

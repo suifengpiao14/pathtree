@@ -5,8 +5,7 @@ import (
 	"embed"
 	"text/template"
 
-	"gitea.programmerfamily.com/go/treeentity"
-	"github.com/pkg/errors"
+	"gitea.programmerfamily.com/go/pathtree"
 	"github.com/suifengpiao14/gotemplatefunc"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/gotemplatefunc/templatefunc"
@@ -37,20 +36,9 @@ func init() {
 }
 
 type areaRecordRepository struct {
+	pathtree.EmptyTreeRpository
 }
 
-func (r *areaRecordRepository) AddNode(node treeentity.TreeNodeI) (err error) {
-	err = errors.Errorf("Not implemented")
-	return err
-}
-func (r *areaRecordRepository) UpdateNode(node treeentity.TreeNodeI) (err error) {
-	err = errors.Errorf("Not implemented")
-	return err
-}
-func (r *areaRecordRepository) UpdateBatchNode(nodes []treeentity.TreeNodeI) (err error) {
-	err = errors.Errorf("Not implemented")
-	return err
-}
 func (r *areaRecordRepository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
 	entity := AreaSQLGetByCityPathPrefixEntity{
 		CityLevel:  LEVEL_CITY,
@@ -84,7 +72,7 @@ func (r *areaRecordRepository) GetByAreaID(areaID string) (areaRecord *CityInfoM
 	}
 	return areaRecord, nil
 }
-func (r *areaRecordRepository) GetByLevel(depth string) (areaRecord CityInfoModels, err error) {
+func (r *areaRecordRepository) GetByLevel(depth int) (areaRecord CityInfoModels, err error) {
 	entity := AreaSQLGetByCityLevelEntity{
 		CityLevel: depth,
 	}
@@ -96,7 +84,7 @@ func (r *areaRecordRepository) GetByLevel(depth string) (areaRecord CityInfoMode
 	return areaRecord, nil
 
 }
-func (r *areaRecordRepository) GetByKeyWord(keyword string) (areaRecord CityInfoModels, err error) {
+func (r *areaRecordRepository) GetByKeyWord(keyword string, depth string) (areaRecord CityInfoModels, err error) {
 	entity := AreaSQLListByKeywordEntity{
 		AreaName: keyword,
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"gitea.programmerfamily.com/go/treeentity"
+	"gitea.programmerfamily.com/go/pathtree"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/logchan/v2"
 )
@@ -28,7 +28,7 @@ func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
 }
 
 type AreaRecordRepository interface {
-	treeentity.TreeRepositoryI
+	pathtree.TreeRepositoryI
 	GetByAreaID(areaID string) (areaRecord *CityInfoModel, err error)
 	GetByLevel(depth int) (areaRecord CityInfoModels, err error)
 	GetByKeyWord(keyword string, depth string) (areaRecord CityInfoModels, err error)
@@ -63,7 +63,7 @@ func (node *CityInfoModel) SetParentID(parentId string) {
 	node.ParentID, _ = strconv.Atoi(parentId)
 
 }
-func (node *CityInfoModel) GetParent() (parent treeentity.TreeNodeI, err error) {
+func (node *CityInfoModel) GetParent() (parent pathtree.TreeNodeI, err error) {
 	parentArea, err := node.GetRepository().GetByAreaID(strconv.Itoa(node.ParentID))
 	if err != nil {
 		return nil, err
@@ -72,5 +72,9 @@ func (node *CityInfoModel) GetParent() (parent treeentity.TreeNodeI, err error) 
 }
 
 func (node *CityInfoModel) GetRepository() (r AreaRecordRepository) {
+	r = &areaRecordRepository{}
 	return r
+}
+func (node *CityInfoModel) IsRoot() (ok bool) {
+	return node.AreaID == 0
 }

@@ -23,7 +23,7 @@ func (t *AreaSQLGetByAreaIDEntity) TplType() string {
 }
 
 type AreaSQLGetByCityLevelEntity struct {
-	CityLevel string
+	CityLevel int
 }
 
 func (t *AreaSQLGetByCityLevelEntity) TplName() string {
