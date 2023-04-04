@@ -6,7 +6,7 @@ import (
 
 func Add(record District) (err error) {
 	r := record.GetRepository()
-	nodeEntity := pathtree.NewTree(&record, r)
+	nodeEntity := pathtree.NewTreeNode(&record, r)
 	err = nodeEntity.AddNode()
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func GetByCodeWithChildren(code string) (out []*District, err error) {
 	record := District{
 		Code: code,
 	}
-	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	nodeEntity := pathtree.NewTreeNode(&record, record.GetRepository())
 	err = nodeEntity.GetChildren(-1, true, &out)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func GetParent(code string) (out []*District, err error) {
 	record := District{
 		Code: code,
 	}
-	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	nodeEntity := pathtree.NewTreeNode(&record, record.GetRepository())
 	err = nodeEntity.GetParents(-1, false, &out)
 	if err != nil {
 		return out, err
@@ -42,7 +42,7 @@ func MoveNode(code string, newParentCode string) (err error) {
 	record := District{
 		Code: code,
 	}
-	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
+	nodeEntity := pathtree.NewTreeNode(&record, record.GetRepository())
 	out := make([]District, 0)
 	err = nodeEntity.MoveChildren(newParentCode, out)
 	if err != nil {

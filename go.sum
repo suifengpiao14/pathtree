@@ -135,6 +135,8 @@ github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5 h1:tn9Ip/tJXeCFF5MHJAjHzV0itYwgJSvI7GAB23RbQ+o=
+github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5/go.mod h1:gQgw8pJ4/q/WMX2vs1jsnIRw3C3Fc5Pxvd6+IMiGZ74=
 github.com/suifengpiao14/logchan/v2 v2.0.2/go.mod h1:HvOwW8fowxtX+DIrt79uEWVmojqLA8GC1F1S+Hvwnss=
 github.com/suifengpiao14/logchan/v2 v2.0.4 h1:xon7VIh4a1anYNv9gr0HFn4f+17Gmz789S7Uo1ak5Ho=
 github.com/suifengpiao14/logchan/v2 v2.0.4/go.mod h1:c2DmWbatHcQhLZu1ZiKfMa5B7UFa9APSDqSkTiPBO/4=

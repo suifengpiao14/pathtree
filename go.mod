@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404075608-875f933021b6
+	github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5
 	github.com/suifengpiao14/logchan/v2 v2.0.4
 	github.com/suifengpiao14/templatemap v1.1.6
 	github.com/tidwall/gjson v1.14.4
@@ -42,4 +42,4 @@ require (
 	gorm.io/gorm v1.24.6 // indirect
 )
 
-replace github.com/suifengpiao14/gotemplatefunc => D:\\go\\gotemplatefunc
+//replace github.com/suifengpiao14/gotemplatefunc => D:\\go\\gotemplatefunc
