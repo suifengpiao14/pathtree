@@ -17,27 +17,12 @@ var (
 )
 
 type TreeRepositoryI interface {
-	AddNode(node TreeNodeI) (err error)
-	UpdateNode(node TreeNodeI) (err error)
-	UpdateBatchNode(nodes TreeNodeIs) (err error)
 	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
 	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
 
 type EmptyTreeRpository struct{}
 
-func (r *EmptyTreeRpository) AddNode(node TreeNodeI) (err error) {
-	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "AddNode")
-	panic(err)
-}
-func (r *EmptyTreeRpository) UpdateNode(node TreeNodeI) (err error) {
-	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateNode")
-	panic(err)
-}
-func (r *EmptyTreeRpository) UpdateBatchNode(nodes TreeNodeIs) (err error) {
-	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "UpdateBatchNode")
-	panic(err)
-}
 func (r *EmptyTreeRpository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByPathPrefix")
 	panic(err)
@@ -145,7 +130,7 @@ func (tns TreeNodeIs) ResetAllPath() (err error) {
 		for {
 			parentId := ""
 			isRoot := true
-			if parent != nil {
+			if !IsNil(parent) {
 				parentId = parent.GetNodeID()
 				isRoot = parent.IsRoot()
 			}
@@ -215,7 +200,7 @@ func NewTree(nodeI TreeNodeI, repository TreeRepositoryI) (t *tree) {
 	}
 }
 
-// AddNode 节点
+// AddNode 设置节点的路径和深度
 func (t tree) AddNode() (err error) {
 
 	n := t
@@ -229,11 +214,10 @@ func (t tree) AddNode() (err error) {
 	depth := diffDepth + n.nodeI.GetDepth()
 	n.nodeI.SetPath(path)
 	n.nodeI.SetDepth(depth)
-	err = n.repository.AddNode(n.nodeI)
 	return err
 }
 
-func (t tree) MoveChildren(newParentId string) (err error) {
+func (t tree) MoveChildren(newParentId string, out interface{}) (err error) {
 	node := t
 	r := node.repository
 	nodeOldPath := node.nodeI.GetPath()
@@ -246,10 +230,6 @@ func (t tree) MoveChildren(newParentId string) (err error) {
 	node.nodeI.SetParentID(newParentId)
 	node.nodeI.SetPath(nodeNewPath)
 	node.nodeI.SetDepth(newDepth)
-	err = r.UpdateNode(node.nodeI)
-	if err != nil {
-		return err
-	}
 	// 获取所有子节点
 	var childrenNodeList TreeNodeIs
 	err = r.GetAllByPathPrefix(nodeOldPath, -1, &childrenNodeList)
@@ -265,8 +245,11 @@ func (t tree) MoveChildren(newParentId string) (err error) {
 		children.SetDepth(newDepth)
 		newChildren = append(newChildren, children)
 	}
-	err = r.UpdateBatchNode(newChildren)
-	return err
+	nodes := make(TreeNodeIs, 0)
+	nodes = append(nodes, node.nodeI)
+	nodes = append(nodes, newChildren...)
+	nodes.Convert(out)
+	return nil
 }
 
 func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
@@ -282,7 +265,6 @@ func (t tree) DeleteWithChildren() (nodeIdList []string, err error) {
 	for _, childern := range childrenNodeList {
 		nodeIdList = append(nodeIdList, childern.GetNodeID())
 	}
-
 	return nodeIdList, nil
 }
 
@@ -316,12 +298,7 @@ func (t tree) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (
 		}
 		outNodes = append(outNodes, node)
 	}
-	rv := reflect.Indirect(reflect.ValueOf(out))
-	if !rv.CanSet() {
-		err = errors.Errorf("return variable out must be canSet")
-		return err
-	}
-	rv.Set(reflect.Indirect(reflect.ValueOf(outNodes)))
+	outNodes.Convert(out)
 	return nil
 }
 
@@ -354,4 +331,15 @@ func (t tree) calPathAndDepth() (newPath string, diffDepth int, err error) {
 	newPath = fmt.Sprintf("%s%s", parent.GetPath(), n.nodeI.GetPath())
 	diffDepth = parent.GetDepth() - n.nodeI.GetDepth() + 1
 	return newPath, diffDepth, nil
+}
+
+func IsNil(v interface{}) bool {
+	valueOf := reflect.ValueOf(v)
+	k := valueOf.Kind()
+	switch k {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+		return valueOf.IsNil()
+	default:
+		return v == nil
+	}
 }

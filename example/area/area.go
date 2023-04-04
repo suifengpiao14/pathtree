@@ -1,12 +1,10 @@
 package area
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
 	"gitea.programmerfamily.com/go/pathtree"
-	"github.com/jinzhu/gorm"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/logchan/v2"
 )
@@ -16,8 +14,10 @@ func init() {
 }
 
 func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
+
 	if err != nil {
 		fmt.Println(logInfo)
+		return
 	}
 	switch typeName {
 	case templatedb.LOG_INFO_EXEC_SQL:
@@ -32,6 +32,7 @@ type AreaRecordRepository interface {
 	GetByAreaID(areaID string) (areaRecord *CityInfoModel, err error)
 	GetByLevel(depth int) (areaRecord CityInfoModels, err error)
 	GetByKeyWord(keyword string, depth string) (areaRecord CityInfoModels, err error)
+	UpdatePathAndDepth(areaRecord *CityInfoModel) (err error)
 }
 
 const (
@@ -65,9 +66,6 @@ func (node *CityInfoModel) SetParentID(parentId string) {
 }
 func (node *CityInfoModel) GetParent() (parent pathtree.TreeNodeI, err error) {
 	parentArea, err := node.GetRepository().GetByAreaID(strconv.Itoa(node.ParentID))
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		err = nil
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -79,5 +77,5 @@ func (node *CityInfoModel) GetRepository() (r AreaRecordRepository) {
 	return r
 }
 func (node *CityInfoModel) IsRoot() (ok bool) {
-	return node.AreaID == 0
+	return node.AreaID == 1
 }

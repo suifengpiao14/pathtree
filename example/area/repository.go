@@ -3,7 +3,9 @@ package area
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
+	"strconv"
 	"text/template"
 
 	"gitea.programmerfamily.com/go/pathtree"
@@ -23,9 +25,12 @@ var RepositoryFS embed.FS
 
 func init() {
 	cfg := templatedb.DBConfig{
-		DSN:      "hjx:123456@tcp(recycle.m.mysql.hsb.com:3306)/recycle?charset=utf8&timeout=1s&readTimeout=5s&writeTimeout=5s&parseTime=False&loc=Local&multiStatements=true",
-		LogLevel: "debug",
-		Timeout:  5,
+		DSN:         "hjx:123456@tcp(recycle.m.mysql.hsb.com:3306)/recycle?charset=utf8&timeout=1s&readTimeout=5s&writeTimeout=5s&parseTime=False&loc=Local&multiStatements=true",
+		LogLevel:    "debug",
+		Timeout:     5,
+		MaxOpen:     1,
+		MaxIdle:     1,
+		MaxIdleTime: 60,
 	}
 	dbExecutorGetter := templatedb.NewExecutorGormGetter(cfg)
 	t := template.New("").Funcs(templatefunc.TemplatefuncMapSQL)
@@ -81,6 +86,9 @@ func (r *areaRecordRepository) GetByAreaID(areaID string) (areaRecord *CityInfoM
 	}
 	areaRecord = &CityInfoModel{}
 	err = gotemplatefunc.ExecSQLTpl(context.Background(), SQL_TPL_IDENTITY, entity.TplName(), &entity, areaRecord)
+	if errors.Is(err, templatedb.ERROR_DB_RECORD_NOT_FOUND) {
+		err = nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -108,4 +116,16 @@ func (r *areaRecordRepository) GetByKeyWord(keyword string, depth string) (areaR
 		return nil, err
 	}
 	return areaRecord, nil
+}
+func (r *areaRecordRepository) UpdatePathAndDepth(cityInfo *CityInfoModel) (err error) {
+	entity := AreaSQLUpdatePathAndDepthEntity{
+		CityLevel: strconv.Itoa(cityInfo.CityLevel),
+		CityPath:  cityInfo.CityPath,
+		AreaID:    strconv.Itoa(cityInfo.AreaID),
+	}
+	err = gotemplatefunc.ExecSQLTpl(context.Background(), SQL_TPL_IDENTITY, entity.TplName(), &entity, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }

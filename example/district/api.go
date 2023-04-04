@@ -43,7 +43,8 @@ func MoveNode(code string, newParentCode string) (err error) {
 		Code: code,
 	}
 	nodeEntity := pathtree.NewTree(&record, record.GetRepository())
-	err = nodeEntity.MoveChildren(newParentCode)
+	out := make([]District, 0)
+	err = nodeEntity.MoveChildren(newParentCode, out)
 	if err != nil {
 		return err
 	}

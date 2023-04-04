@@ -21,3 +21,7 @@
 {{define "ListByKeyword"}}
     select * from `t_city_info_tmp` where `Farea_name` like :AreaName and  `Fcity_status`=1;
 {{end}}
+
+{{define "UpdatePathAndDepth"}}
+    update  `t_city_info_tmp` set `Fcity_path`=:CityPath,`Fcity_level`=:CityLevel where `Farea_id`=:AreaID ;
+{{end}}
