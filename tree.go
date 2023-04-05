@@ -36,6 +36,7 @@ type TreeNodeI interface {
 	GetNodeID() (nodeID string)
 	SetPath(path string)
 	SetDepth(depth int)
+	GetParentID() (parentID string)
 	GetParent() (parent TreeNodeI, err error)
 	GetPath() (path string)
 	GetDepth() (depth int)
@@ -63,6 +64,10 @@ func (etn *EmptyTreeNode) SetDepth(depth int) {
 	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "SetDepth")
 	panic(err)
 }
+func (etn *EmptyTreeNode) GetParentID() (parentID string) {
+	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetParentID")
+	panic(err)
+}
 func (etn *EmptyTreeNode) GetParent() (parent TreeNodeI, err error) {
 	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetParent")
 	panic(err)
@@ -71,6 +76,7 @@ func (etn *EmptyTreeNode) GetPath() (path string) {
 	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetPath")
 	panic(err)
 }
+
 func (etn *EmptyTreeNode) GetDepth() (depth int) {
 	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetDepth")
 	panic(err)
@@ -112,9 +118,8 @@ func (tns treeNodeIs) Convert(dst interface{}) {
 	copy := rv
 	c := len(tns)
 	arr := make([]reflect.Value, c)
-	for _, node := range tns {
-		nodeRv := reflect.ValueOf(node)
-		arr = append(arr, nodeRv)
+	for i := 0; i < c; i++ {
+		arr[i] = reflect.ValueOf(tns[i])
 	}
 	copy = reflect.Append(copy, arr...) // 此处重新赋值，丢失引用,所以用copy
 	rv.Set(copy)
@@ -124,43 +129,11 @@ func (tns treeNodeIs) ResetAllPath() (err error) {
 	count := len(tns)
 	// 循环处理数据,增加path和depth
 	for i := 0; i < count; i++ {
-		node := tns[i]
-		revNodeIdList := make([]string, 0)
-		parent := node
-		for {
-			parentId := ""
-			isRoot := true
-			if !IsNil(parent) {
-				parentId = parent.GetNodeID()
-				isRoot = parent.IsRoot()
-			}
-			revNodeIdList = append(revNodeIdList, parentId)
-			if isRoot {
-				break
-			}
-
-			parent, err = parent.GetParent()
-			if errors.Is(err, ERROR_NODE_NOT_FOUND) {
-				err = nil
-			}
-			if err != nil {
-				return err
-			}
+		treeNode := NewTreeNode(tns[i], nil)
+		err = treeNode.ResetPath()
+		if err != nil {
+			return err
 		}
-		var w bytes.Buffer
-		l := len(revNodeIdList)
-		for i := l - 1; i > -1; i-- {
-			nodeId := revNodeIdList[i]
-			if nodeId == "" {
-				continue
-			}
-			w.WriteString("/")
-			w.WriteString(nodeId)
-		}
-		path := w.String()
-		depth := strings.Count(path, "/")
-		node.SetDepth(depth)
-		node.SetPath(path)
 	}
 	return nil
 }
@@ -321,6 +294,49 @@ func (t treeNode) GetChildren(relativeDepth int, withOutSelf bool, out interface
 	return nil
 }
 
+// ResetPath 重置路径和深度 通过parentID 递归生成父节点路径,避免父节点路径错误时,不会将错误放大,另外path 为冗余字断,主要用于优化查询,不做模型计算
+func (t treeNode) ResetPath() (err error) {
+	node := t.nodeI
+	revNodeIdList := make([]string, 0)
+	parent := node
+	for {
+		parentId := ""
+		isRoot := true
+		if !IsNil(parent) {
+			parentId = parent.GetNodeID()
+			isRoot = parent.IsRoot()
+		}
+		revNodeIdList = append(revNodeIdList, parentId)
+		if isRoot {
+			break
+		}
+		treeNode := NewTreeNode(parent, t.repository)
+		parentNodes := treeNodeIs{}
+		parent, err = getParent(*treeNode, &parentNodes)
+		if errors.Is(err, ERROR_NODE_NOT_FOUND) {
+			err = nil
+		}
+		if err != nil {
+			return err
+		}
+	}
+	var w bytes.Buffer
+	l := len(revNodeIdList)
+	for i := l - 1; i > -1; i-- {
+		nodeId := revNodeIdList[i]
+		if nodeId == "" {
+			continue
+		}
+		w.WriteString("/")
+		w.WriteString(nodeId)
+	}
+	path := w.String()
+	depth := strings.Count(path, "/")
+	node.SetDepth(depth)
+	node.SetPath(path)
+	return nil
+}
+
 // calPath 计算节点迁移的新路径和深度
 func (t treeNode) calPathAndDepth() (newPath string, diffDepth int, err error) {
 	n := t
@@ -331,6 +347,32 @@ func (t treeNode) calPathAndDepth() (newPath string, diffDepth int, err error) {
 	newPath = fmt.Sprintf("%s%s", parent.GetPath(), n.nodeI.GetPath())
 	diffDepth = parent.GetDepth() - n.nodeI.GetDepth() + 1
 	return newPath, diffDepth, nil
+}
+
+// getParent 通过parentID 获取父类,使用path作为性能优化,主要用于设置路径情景
+func getParent(node treeNode, cacheNodes *treeNodeIs) (parent TreeNodeI, err error) {
+	parentID := node.nodeI.GetParentID()
+	for _, parent := range *cacheNodes {
+		if parent.GetNodeID() == parentID {
+			return parent, nil
+		}
+	}
+	parent, err = node.nodeI.GetParent()
+	if err != nil {
+		return nil, err
+	}
+	path := parent.GetPath()
+	idList := strings.Split(path, "/")
+	r := node.repository
+	if len(idList) > 0 && r != nil {
+		nodes := treeNodeIs{}
+		err = r.GetAllByNodeIds(idList, &nodes)
+		if err != nil {
+			return nil, err
+		}
+		*cacheNodes = append(*cacheNodes, nodes...)
+	}
+	return parent, err
 }
 
 func IsNil(v interface{}) bool {

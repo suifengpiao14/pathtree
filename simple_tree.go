@@ -15,6 +15,9 @@ type SimpleTree struct {
 func (st *SimpleTree) GetNodeID() (nodeID string) {
 	return st.ID
 }
+func (st *SimpleTree) GetParentID() (parentID string) {
+	return st.ParentID
+}
 func (st *SimpleTree) SetPath(path string) {
 	st.Path = path
 }
