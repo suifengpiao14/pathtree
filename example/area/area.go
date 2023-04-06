@@ -1,6 +1,7 @@
 package area
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func init() {
-	logchan.SetLoggerWriter(loggerFn)
+	logchan.SetLoggerWriter(context.Background(), loggerFn)
 }
 
 func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
