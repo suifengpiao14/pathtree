@@ -30,9 +30,9 @@ func (cis *CityInfoModels) Init() {
 
 func ResetAllPath() (err error) {
 	areaRecord := &CityInfoModel{}
-	r := areaRecord.GetRepository()
+
 	all := make(CityInfoModels, 0)
-	err = r.GetAllByPathPrefix("", -1, &all)
+	err = areaRecord.GetAllByPathPrefix("", -1, &all)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func ResetAllPath() (err error) {
 	if err != nil {
 		return err
 	}
-
+	r := areaRecord.GetRepository()
 	for _, record := range all {
 		err = r.UpdatePathAndDepth(&record.CityInfoModel)
 		if err != nil {

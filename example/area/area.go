@@ -28,7 +28,6 @@ func loggerFn(logInfo logchan.LogInforInterface, typeName string, err error) {
 }
 
 type AreaRecordRepository interface {
-	pathtree.TreeRepositoryI
 	GetByAreaID(areaID string) (areaRecord *CityInfoModel, err error)
 	GetByLevel(depth int) (areaRecord CityInfoModels, err error)
 	GetByKeyWord(keyword string, depth string) (areaRecord CityInfoModels, err error)

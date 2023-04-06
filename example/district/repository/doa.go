@@ -17,7 +17,6 @@ import (
 )
 
 type doaRepository struct {
-	pathtree.EmptyTreeRpository
 }
 
 func NewDoaRepository() (rep *doaRepository) {

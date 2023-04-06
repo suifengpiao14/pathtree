@@ -16,22 +16,6 @@ var (
 	ERROR_NODE_NOT_FOUND = errors.Errorf("node not found")
 )
 
-type TreeRepositoryI interface {
-	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
-	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
-}
-
-type EmptyTreeRpository struct{}
-
-func (r *EmptyTreeRpository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
-	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByPathPrefix")
-	panic(err)
-}
-func (r *EmptyTreeRpository) GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error) {
-	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByNodeIds")
-	panic(err)
-}
-
 type TreeNodeI interface {
 	GetNodeID() (nodeID string)
 	SetPath(path string)
@@ -44,6 +28,8 @@ type TreeNodeI interface {
 	IsRoot() (ok bool)
 	AddChildren(node TreeNodeI)
 	IncrChildrenCount(causeNode TreeNodeI)
+	GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error)
+	GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error)
 }
 
 // EmptyTreeNode 主要用于屏蔽不需要实现的接口，以及对已有的实现屏蔽新增方法，建议TreeNodeI 的实现继承EmptyTreeNode
@@ -97,6 +83,14 @@ func (etn *EmptyTreeNode) IncrChildrenCount(causeNode TreeNodeI) {
 	err := errors.WithMessage(ERROR_NOT_IMPLEMENTED, "IncrChildrenCount")
 	panic(err)
 }
+func (etn *EmptyTreeNode) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByPathPrefix")
+	panic(err)
+}
+func (etn *EmptyTreeNode) GetAllByNodeIds(nodeIds []string, nodes interface{}) (err error) {
+	err = errors.WithMessage(ERROR_NOT_IMPLEMENTED, "GetAllByNodeIds")
+	panic(err)
+}
 
 type treeNodeIs []TreeNodeI
 
@@ -129,7 +123,7 @@ func (tns treeNodeIs) ResetAllPath() (err error) {
 	count := len(tns)
 	// 循环处理数据,增加path和depth
 	for i := 0; i < count; i++ {
-		treeNode := NewTreeNode(tns[i], nil)
+		treeNode := NewTreeNode(tns[i])
 		err = treeNode.ResetPath()
 		if err != nil {
 			return err
@@ -162,14 +156,12 @@ func (tns *treeNodeIs) CountChildren() {
 }
 
 type treeNode struct {
-	nodeI      TreeNodeI
-	repository TreeRepositoryI
+	nodeI TreeNodeI
 }
 
-func NewTreeNode(nodeI TreeNodeI, repository TreeRepositoryI) (t *treeNode) {
+func NewTreeNode(nodeI TreeNodeI) (t *treeNode) {
 	return &treeNode{
-		nodeI:      nodeI,
-		repository: repository,
+		nodeI: nodeI,
 	}
 }
 
@@ -192,7 +184,6 @@ func (t treeNode) AddNode() (err error) {
 
 func (t treeNode) MoveChildren(newParentId string, out interface{}) (err error) {
 	node := t
-	r := node.repository
 	nodeOldPath := node.nodeI.GetPath()
 	nodeNewPath, diffDepth, err := t.calPathAndDepth()
 	if err != nil {
@@ -205,7 +196,7 @@ func (t treeNode) MoveChildren(newParentId string, out interface{}) (err error) 
 	node.nodeI.SetDepth(newDepth)
 	// 获取所有子节点
 	var childrenNodeList treeNodeIs
-	err = r.GetAllByPathPrefix(nodeOldPath, -1, &childrenNodeList)
+	err = node.nodeI.GetAllByPathPrefix(nodeOldPath, -1, &childrenNodeList)
 	if err != nil {
 		return err
 	}
@@ -227,10 +218,9 @@ func (t treeNode) MoveChildren(newParentId string, out interface{}) (err error) 
 
 func (t treeNode) DeleteWithChildren() (nodeIdList []string, err error) {
 	node := t
-	r := node.repository
 	// 获取所有子节点
 	var childrenNodeList treeNodeIs
-	err = r.GetAllByPathPrefix(node.nodeI.GetPath(), -1, &childrenNodeList)
+	err = node.nodeI.GetAllByPathPrefix(node.nodeI.GetPath(), -1, &childrenNodeList)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +234,6 @@ func (t treeNode) DeleteWithChildren() (nodeIdList []string, err error) {
 // GetParents 获取节点的所有父节点
 func (t treeNode) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t
-	r := n.repository
 	nodeIdList := strings.Split(n.nodeI.GetPath(), "/")
 	if len(nodeIdList) == 0 {
 		return nil
@@ -256,7 +245,7 @@ func (t treeNode) GetParents(relativeDepth int, withOutSelf bool, out interface{
 		return nil
 	}
 	nodes := make(treeNodeIs, 0)
-	err = r.GetAllByNodeIds(nodeIdList, &nodes)
+	err = n.nodeI.GetAllByNodeIds(nodeIdList, &nodes)
 	if err != nil {
 		return err
 	}
@@ -277,7 +266,6 @@ func (t treeNode) GetParents(relativeDepth int, withOutSelf bool, out interface{
 
 func (t treeNode) GetChildren(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t.nodeI
-	r := t.repository
 	maxDepth := DEPTH_MAX
 	if relativeDepth > 0 {
 		maxDepth = n.GetDepth() + relativeDepth
@@ -286,7 +274,7 @@ func (t treeNode) GetChildren(relativeDepth int, withOutSelf bool, out interface
 	if !withOutSelf {
 		parentPath = fmt.Sprintf("%s/", parentPath)
 	}
-	err = r.GetAllByPathPrefix(parentPath, maxDepth, out)
+	err = n.GetAllByPathPrefix(parentPath, maxDepth, out)
 	if err != nil {
 		err = errors.WithStack(err)
 		return err
@@ -310,7 +298,7 @@ func (t treeNode) ResetPath() (err error) {
 		if isRoot {
 			break
 		}
-		treeNode := NewTreeNode(parent, t.repository)
+		treeNode := NewTreeNode(parent)
 		parentNodes := treeNodeIs{}
 		parent, err = getParent(*treeNode, &parentNodes)
 		if errors.Is(err, ERROR_NODE_NOT_FOUND) {
@@ -363,10 +351,9 @@ func getParent(node treeNode, cacheNodes *treeNodeIs) (parent TreeNodeI, err err
 	}
 	path := parent.GetPath()
 	idList := strings.Split(path, "/")
-	r := node.repository
-	if len(idList) > 0 && r != nil {
+	if len(idList) > 0 {
 		nodes := treeNodeIs{}
-		err = r.GetAllByNodeIds(idList, &nodes)
+		err = node.nodeI.GetAllByNodeIds(idList, &nodes)
 		if err != nil {
 			return nil, err
 		}

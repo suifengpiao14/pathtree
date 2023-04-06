@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"text/template"
 
-	"gitea.programmerfamily.com/go/pathtree"
 	"github.com/suifengpiao14/gotemplatefunc"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/gotemplatefunc/templatefunc"
@@ -42,7 +41,6 @@ func init() {
 }
 
 type areaRecordRepository struct {
-	pathtree.EmptyTreeRpository
 }
 
 func (r *areaRecordRepository) GetAllByPathPrefix(pathPrefix string, depth int, nodes interface{}) (err error) {
