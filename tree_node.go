@@ -11,6 +11,7 @@ import (
 
 var DEPTH_MIN = -1     //最小深度值
 var DEPTH_MAX = 100000 //最大深度值
+var PathSpec = "/"
 
 var (
 	ERROR_NODE_NOT_FOUND = errors.Errorf("node not found")
@@ -234,7 +235,7 @@ func (t treeNode) DeleteWithChildren() (nodeIdList []string, err error) {
 // GetParents 获取节点的所有父节点
 func (t treeNode) GetParents(relativeDepth int, withOutSelf bool, out interface{}) (err error) {
 	n := t
-	nodeIdList := strings.Split(n.nodeI.GetPath(), "/")
+	nodeIdList := strings.Split(n.nodeI.GetPath(), PathSpec)
 	if len(nodeIdList) == 0 {
 		return nil
 	}
@@ -315,11 +316,11 @@ func (t treeNode) ResetPath() (err error) {
 		if nodeId == "" {
 			continue
 		}
-		w.WriteString("/")
+		w.WriteString(PathSpec)
 		w.WriteString(nodeId)
 	}
 	path := w.String()
-	depth := strings.Count(path, "/")
+	depth := strings.Count(path, PathSpec)
 	node.SetDepth(depth)
 	node.SetPath(path)
 	return nil
@@ -350,7 +351,7 @@ func getParent(node treeNode, cacheNodes *treeNodeIs) (parent TreeNodeI, err err
 		return nil, err
 	}
 	path := parent.GetPath()
-	idList := strings.Split(path, "/")
+	idList := strings.Split(path, PathSpec)
 	if len(idList) > 0 {
 		nodes := treeNodeIs{}
 		err = node.nodeI.GetAllByNodeIds(idList, &nodes)
