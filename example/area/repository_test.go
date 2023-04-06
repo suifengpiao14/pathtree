@@ -57,6 +57,6 @@ func TestGetByKeyWord(t *testing.T) {
 		wg.Done()
 	}()
 	wg.Wait()
-	logchan.UntilFinished(2 * time.Second)
+	logchan.UntilFinished(2*time.Second, true)
 
 }

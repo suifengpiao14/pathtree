@@ -13,8 +13,8 @@ require (
 )
 
 require (
-	github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5
-	github.com/suifengpiao14/logchan/v2 v2.0.4
+	github.com/suifengpiao14/gotemplatefunc v0.0.0-20230406110107-bf15a22be88e
+	github.com/suifengpiao14/logchan/v2 v2.0.6
 	github.com/suifengpiao14/templatemap v1.1.6
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5

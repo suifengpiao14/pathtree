@@ -135,11 +135,10 @@ github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
-github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5 h1:tn9Ip/tJXeCFF5MHJAjHzV0itYwgJSvI7GAB23RbQ+o=
-github.com/suifengpiao14/gotemplatefunc v0.0.0-20230404112108-a679f60694e5/go.mod h1:gQgw8pJ4/q/WMX2vs1jsnIRw3C3Fc5Pxvd6+IMiGZ74=
-github.com/suifengpiao14/logchan/v2 v2.0.2/go.mod h1:HvOwW8fowxtX+DIrt79uEWVmojqLA8GC1F1S+Hvwnss=
-github.com/suifengpiao14/logchan/v2 v2.0.4 h1:xon7VIh4a1anYNv9gr0HFn4f+17Gmz789S7Uo1ak5Ho=
-github.com/suifengpiao14/logchan/v2 v2.0.4/go.mod h1:c2DmWbatHcQhLZu1ZiKfMa5B7UFa9APSDqSkTiPBO/4=
+github.com/suifengpiao14/gotemplatefunc v0.0.0-20230406110107-bf15a22be88e h1:1Jnupty6jbnrZo7GWM/0jDC0nkbmoAhMg11Ih6gvw30=
+github.com/suifengpiao14/gotemplatefunc v0.0.0-20230406110107-bf15a22be88e/go.mod h1:C3ZgWE0AZCle7EW6hjheQ404wf1rxi6U9xjwGqsRacQ=
+github.com/suifengpiao14/logchan/v2 v2.0.6 h1:NWjVvcita2w8SwU4MlME8YLXVCzpqhoY2N+QbWiuueg=
+github.com/suifengpiao14/logchan/v2 v2.0.6/go.mod h1:c2DmWbatHcQhLZu1ZiKfMa5B7UFa9APSDqSkTiPBO/4=
 github.com/suifengpiao14/templatemap v1.1.6 h1:Bab3cyYumDtqVmL9ThO/w3Cl4SjWK7WKx09rvLD0nX0=
 github.com/suifengpiao14/templatemap v1.1.6/go.mod h1:sexhIM9T+D0zBA0/WAbkhP5fMGZKzDtKHpE7bmQa6ig=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=

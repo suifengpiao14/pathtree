@@ -10,6 +10,6 @@ import (
 
 func TestResetAllPath(t *testing.T) {
 	err := ResetAllPath()
-	logchan.UntilFinished(10 * time.Second)
+	logchan.UntilFinished(10*time.Second, true)
 	require.NoError(t, err)
 }
