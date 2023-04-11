@@ -1,7 +1,7 @@
 package area
 
 import (
-	"gitea.programmerfamily.com/go/pathtree"
+	"github.com/suifengpiao14/pathtree"
 )
 
 func GetAll(parentID string) (nodes CityInfoModels, err error) {

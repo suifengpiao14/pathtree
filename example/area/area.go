@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"gitea.programmerfamily.com/go/pathtree"
+	"github.com/suifengpiao14/pathtree"
 	"github.com/suifengpiao14/gotemplatefunc/templatedb"
 	"github.com/suifengpiao14/logchan/v2"
 )

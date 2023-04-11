@@ -1,4 +1,4 @@
-module gitea.programmerfamily.com/go/pathtree
+module github.com/suifengpiao14/pathtree
 
 go 1.17
 

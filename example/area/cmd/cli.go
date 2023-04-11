@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"gitea.programmerfamily.com/go/pathtree"
-	"gitea.programmerfamily.com/go/pathtree/example/area"
+	"github.com/suifengpiao14/pathtree"
+	"github.com/suifengpiao14/pathtree/example/area"
 )
 
 type CityInfoModel struct {

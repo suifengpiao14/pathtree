@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gitea.programmerfamily.com/go/pathtree"
+	"github.com/suifengpiao14/pathtree"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 	templatemaputil "github.com/suifengpiao14/templatemap/util"

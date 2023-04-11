@@ -1,6 +1,6 @@
 package area
 
-import treeentity "gitea.programmerfamily.com/go/pathtree"
+import treeentity "github.com/suifengpiao14/pathtree"
 
 type CityInfoModel struct {
 	// 城市ID

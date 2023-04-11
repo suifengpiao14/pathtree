@@ -1,7 +1,7 @@
 package district
 
 import (
-	"gitea.programmerfamily.com/go/pathtree"
+	"github.com/suifengpiao14/pathtree"
 )
 
 func Add(record District) (err error) {
