@@ -30,7 +30,7 @@ https://www.cnblogs.com/goloving/p/13570067.html
 
 
 ## 使用
-1. 外部实现 TreeNodeI 接口,需要存储情况实现TreeRepositoryI
+1. 外部实现 TreeNodeI 接口,需要存储媒介实现TreeRepositoryI
 2. 调用包方法ConvertToTreeNodes、NewTreeNode 转换成当前包内对象
 3. 调用相应方法完成功能或者数据整理
 4. 使用treeNodeIs相关功能后,调用treeNodeIs.Convert转换为目标结构体
